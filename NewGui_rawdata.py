@@ -767,7 +767,6 @@ class Rawdata_extractor(QWidget):
 
             cafe24(url_cafe24, url_cafe24_req_ZQ, cafe24_id_ZQ, cafe24_pw_ZQ, sheet_ZQR_url, sheet_ZQR, sheet_ZQD)
     
-<<<<<<< HEAD
         # 쿠팡
         def coupang(url_coupang_daily, coupang_id, coupang_pw, coupC_url):
             try:
@@ -1042,8 +1041,6 @@ class Rawdata_extractor(QWidget):
                 try:
                     WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "body > div.MuiDialog-root.sc-852clq-0.efPzRF > div.MuiDialog-container.MuiDialog-scrollPaper > div > div:nth-child(3) > button"))).click()
                 except: pass
-=======
->>>>>>> 1e354683fa81441d941cc7e0d069d7eff51441ae
 
 
         
