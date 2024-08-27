@@ -391,6 +391,7 @@ class Rawdata_extractor(QWidget):
     # 타겟날짜 변수 저장
         target_days_input = int(self.combo.currentText())
 
+        global download_folder
         download_folder = self.path_folder.text()
 
         
@@ -513,6 +514,7 @@ class Rawdata_extractor(QWidget):
         }
 
         # 오늘 날짜 구하기
+        global today_yday
         today_yday = today-day1
         today_tday = today-dayx
         today_Tday년월 = (today-dayx).strftime("%Y년 %m월")
@@ -521,6 +523,7 @@ class Rawdata_extractor(QWidget):
         Yday_month월 = str(int(today_yday.strftime("%m"))) + "월"
         today_Tday일 = str(int((today-dayx).strftime("%d")))
         today_Yday일 = str(int((today-day1).strftime("%d")))
+        today_tday_str = (today-dayx).strftime('%Y-%m-%d')
 
 
         weekday_num = today.weekday()  # 요일 번호 (월요일이 0, 일요일이 6)
@@ -713,8 +716,6 @@ class Rawdata_extractor(QWidget):
 
             driver.close()
 
-
-
         #카페24 하엔
         if self.haen_salesCafe24.isChecked() == True:
 
@@ -777,6 +778,215 @@ class Rawdata_extractor(QWidget):
             cafe24(url_cafe24, url_cafe24_req_ZQ, cafe24_id_ZQ, cafe24_pw_ZQ, sheet_ZQR_url, sheet_ZQR, sheet_ZQD)
     
 
+        def sales_coup(url, id, pw, sheet_url, sheet_name, option):
+
+            # 크롬 On
+            ### chromedriver_autoinstaller.install() 사용 추가
+            chromedriver_path = chromedriver_autoinstaller.install()
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            chrome_options.add_argument("--start-maximized") #최대 크기로 시작
+            # chrome_options.add_argument('--incognito')
+            # chrome_options.add_argument('--window-size=1920,1080')  
+            # chrome_options.add_argument('--headless')
+            chrome_options.add_experimental_option('detach', True)
+
+            user_data = self.chrome_path_folder.text()
+            user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
+            chrome_options.add_argument(f"user-data-dir={user_data}")
+            chrome_options.add_argument("--profile-directory=Profile 1")
+            
+            user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+            headers = {'user-agent' : user_agent}
+
+            driver = webdriver.Chrome(
+                service=Service(chromedriver_path),
+                options=chrome_options
+            )
+
+            driver.get(url)
+
+            print(id)
+            print(pw)
+            input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#username")))
+            input_field.click()
+            time.sleep(0.7)
+            input_field.send_keys(Keys.CONTROL + "a")
+            input_field.send_keys(Keys.BACKSPACE)
+            driver.find_element(By.CSS_SELECTOR, "#username").send_keys(id)
+            input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#password")))
+            input_field.click()
+            input_field.send_keys(Keys.CONTROL + "a")
+            input_field.send_keys(Keys.BACKSPACE)
+            driver.find_element(By.CSS_SELECTOR, "#password").send_keys(pw)
+            driver.find_element(By.CSS_SELECTOR,'#kc-login').click()
+
+            target_days = target_days_input
+
+            while target_days > 0:
+
+                dayx = datetime.timedelta(days=target_days)
+                today_tday_str = (today-dayx).strftime('%Y-%m-%d')
+                
+                try:
+                    time.sleep(1)
+                    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#search-filter-panel > div:nth-child(1) > span.sc-common-date-group > span:nth-child(1)"))) # 시작 날짜
+                    time.sleep(1)
+                    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#search-filter-panel > div:nth-child(1) > span.sc-common-date-group > span:nth-child(1)"))).click() # 시작 날짜
+                except:
+                    driver.get(coupC_url)
+                    time.sleep(1)
+                    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#search-filter-panel > div:nth-child(1) > span.sc-common-date-group > span:nth-child(1)"))) # 시작 날짜
+                    time.sleep(1)
+                    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#search-filter-panel > div:nth-child(1) > span.sc-common-date-group > span:nth-child(1)"))).click() # 시작 날짜
+
+
+                input_field = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#dateEnd")))
+                time.sleep(0.1)
+                input_field.send_keys(Keys.CONTROL + "a")
+                input_field.send_keys(Keys.BACKSPACE)
+                input_field.send_keys(today_tday_str)
+                time.sleep(0.1)
+
+                click_field = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#search-filter-panel > div:nth-child(1) > span.sc-common-date-group > span:nth-child(2)")))
+                click_field.click() # 끝 날짜
+
+                input_field = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#dateStart")))
+                time.sleep(0.1)
+                input_field.send_keys(Keys.CONTROL + "a")
+                input_field.send_keys(Keys.BACKSPACE)
+                input_field.send_keys(today_tday_str)
+                
+                WebDriverWait(driver, 10).until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#date_range"))) # 날짜변경확인
+                
+                time.sleep(1)
+                
+
+                # 로데이터, 쿠팡 다운로드 체크 오류 -> 다운로드 확인 방식 변경 (check_download() -> 수식 풀어서 확인)
+                # 다운로드 확인
+                cnt = 1
+                current_file_count1 = count_files(download_folder)
+                while cnt < 10:
+                    try:
+                        try:
+                            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#download-product-info"))).click() # 다운로드
+                            driver.find_element(By.CSS_SELECTOR, "#download-product-info").click()
+                        except:
+                            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#download-product-info"))).click() # 다운로드
+                            driver.find_element(By.CSS_SELECTOR, "#download-product-info").click()
+                        current_file_count2 = count_files(download_folder)
+                        time.sleep(3)
+                        if current_file_count1 != current_file_count2:
+                            break
+
+                        cnt += 1
+
+                    except:
+                        confirm_button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "confirm")))
+                        driver.execute_script("arguments[0].click();", confirm_button)
+
+                        try:
+                            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#download-product-info"))).click() # 다운로드
+                            driver.find_element(By.CSS_SELECTOR, "#download-product-info").click()
+                        except:
+                            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#download-product-info"))).click() # 다운로드
+                            driver.find_element(By.CSS_SELECTOR, "#download-product-info").click()
+                        current_file_count2 = count_files(download_folder)
+                        time.sleep(3)
+                        if current_file_count1 != current_file_count2:
+                            break
+
+                        cnt += 1
+
+                time.sleep(1)
+
+                xlsx_file = get_latest_file(download_folder)
+
+                df_uploaded_new = pd.read_excel(xlsx_file)
+                # '러브슬라임'이라는 단어가 포함된 모든 행을 '옵션명' 열을 기준으로 필터링합니다.
+                filtered_rows_with_loveslime = df_uploaded_new[df_uploaded_new['옵션명'].astype(str).str.contains(option)]
+
+                # 필터링된 행들의 데이터를 리스트로 변환합니다.
+                rows_list_with_loveslime = filtered_rows_with_loveslime.values.tolist()
+
+
+                # 두 번째 값만 정수형으로 변환한 후 문자열로 변환하여 업데이트하는 과정
+                updated_data_list = []
+                for row in rows_list_with_loveslime:
+                    new_row = row.copy()  # 원본 데이터의 복사본 생성
+                    if len(row) > 1:  # 두 번째 값이 존재하는지 확인
+                        new_row[1] = str(int(row[1]))  # 두 번째 값을 정수형으로 변환 후 문자열로 변환
+                    updated_data_list.append(new_row)
+
+                # 결과 출력
+                print(updated_data_list)
+
+                # 서비스 계정 키 파일 경로
+                credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+
+                # gspread 클라이언트 초기화
+                client = gspread.service_account(filename=credential_file)
+
+                # Google 시트 열기
+                spreadsheet = client.open_by_url(sheet_url)
+
+                # 첫 번째 시트 선택
+                sheet = spreadsheet.worksheet(sheet_name)
+
+                last_row = len(sheet.get_all_values())
+                print(last_row)
+                next_row = last_row + 1  # 다음 행 번호
+                    
+                # Google 시트에 데이터 쓰기
+                if len(updated_data_list) > 1:
+                    i = 0
+                    while i < len(updated_data_list):
+                        range_to_write = f'B{next_row+i}:N{next_row+i}'
+                        sheet.update([updated_data_list[i]], range_to_write)
+                        sheet.update([[today_tday_str]], f'A{next_row+i}')
+                        i += 1
+                else:
+                    range_to_write = f'B{next_row}:N{next_row}'
+                    sheet.update([updated_data_list[0]], range_to_write)
+                    sheet.update([[today_tday_str]], f'A{next_row}')
+
+                target_days -= 1
+                
+            driver.close()
+
+            
+        # 쿠팡 하엔
+        coupC_url = "https://wing.coupang.com/seller/notification/metrics/dashboard"
+        sheet_url_coupC = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=374561563'
+
+            
+        if self.haen_salesCoup.isChecked() == True:
+            
+            coupang_id_haen = self.login_info("COUP_HAEN_ID")
+            coupang_pw_haen = self.login_info("COUP_HAEN_PW")
+            sheet_name_haenC = '하엔C'
+            options = "하엔"
+
+            sales_coup(coupC_url, coupang_id_haen, coupang_pw_haen, sheet_url_coupC, sheet_name_haenC, options)
+
+        # 쿠팡 러블로
+        if self.love_salesCoup.isChecked() == True:
+
+            coupang_id_love = self.login_info("COUP_LOVE_ID")
+            coupang_pw_love = self.login_info("COUP_LOVE_PW")
+            sheet_name_loveC = '러블로C'
+            options = "러브슬라임"
+
+            sales_coup(coupC_url, coupang_id_love, coupang_pw_love, sheet_url_coupC, sheet_name_loveC, options)
+
+        # 쿠팡 노마셀
+        if self.know_salesCoup.isChecked() == True:
+            coupang_id_know = self.login_info("COUP_KNOW_ID")
+            coupang_pw_know = self.login_info("COUP_KNOW_PW")
+            sheet_name_knowC = '노마셀C'
+            options = "노마셀"
+
+            sales_coup(coupC_url, coupang_id_know, coupang_pw_know, sheet_url_coupC, sheet_name_knowC, options)
 
 
         
