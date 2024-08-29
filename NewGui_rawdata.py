@@ -2272,8 +2272,8 @@ class Rawdata_extractor(QWidget):
             brand = "노마셀"
 
             power(url_cafe24, url2, cafe24_id_know, cafe24_pw_know, sheetUrl_know, sheetName_knowPCR, Keyword, Keyword2, brand)
-
-        def google(url_google):
+# 구글 광고
+        def advt_google(url_google):
 
             # 크롬 On
             ### chromedriver_autoinstaller.install() 사용 추가
@@ -2287,7 +2287,7 @@ class Rawdata_extractor(QWidget):
             chrome_options.add_experimental_option('detach', True)
 
             user_data = self.chrome_path_folder.text()
-            user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
+            user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data2'
             chrome_options.add_argument(f"user-data-dir={user_data}")
             chrome_options.add_argument("--profile-directory=Profile 1")
             
@@ -2300,7 +2300,12 @@ class Rawdata_extractor(QWidget):
             )
 
             driver.get(url_google)
-            WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CLASS_NAME, 'button-text')))
+            try:
+                WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CLASS_NAME, 'button-text')))
+            except:
+                driver.refresh()
+                WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CLASS_NAME, 'button-text')))
+
             calOpen = driver.find_element(By.CLASS_NAME, 'button-text')
 
             time.sleep(1)
@@ -2363,7 +2368,7 @@ class Rawdata_extractor(QWidget):
             time.sleep(2)
             driver.close()
 
-        def google_rawdata(sheet_url, sheet_name, brand):
+        def advt_google_rawdata(sheet_url, sheet_name, brand):
 
             target_days = target_days_input
             dayx = timedelta(days=target_days)
@@ -2411,6 +2416,7 @@ class Rawdata_extractor(QWidget):
 
                 last_row = len(sheet.col_values(1))
                 next_row = int(last_row) + 1
+                print(next_row)
 
                 print(today_tday, "검색 시작")
                 for i in selected_rows:
@@ -2436,65 +2442,33 @@ class Rawdata_extractor(QWidget):
                         new_selected_rows.append(result)
                         print(new_selected_rows)
 
-                        range_to_write = f'A{next_row}:M{next_row}'
-                        updates.append({'range': range_to_write, 'values': new_selected_rows})
-
-                        next_row += 1
-
                         if brand == "하엔":
                             print("하엔 입력 시작")
 
-                            # range_to_write = f'A{next_row}:M{next_row}'
-                            # updates.append({'range': range_to_write, 'values': new_selected_rows})
-                            # sheet.update(new_selected_rows, range_to_write)
+                            range_to_write = f'A{next_row}:M{next_row}'
+                            updates.append({'range': range_to_write, 'values': new_selected_rows})
+                            sheet.update(new_selected_rows, range_to_write)
 
-                            # # 셀 포맷 설정
-                            # sheet.format(f"H{next_row}", {"numberFormat": {"type": "PERCENT", "pattern": "0.00%"}})
-                            # sheet.format(f'I{next_row}:L{next_row}', {"numberFormat": {"type":'NUMBER'}})
-                            # time.sleep(1)
                             # 셀 포맷 설정
-                            formats.append({
-                                'range': f"H{next_row}",
-                                'format': {"numberFormat": {"type": "PERCENT", "pattern": "0.00%"}}
-                            })
-                            formats.append({
-                                'range': f'I{next_row}:L{next_row}',
-                                'format': {"numberFormat": {"type": 'NUMBER'}}
-                            })
-
+                            sheet.format(f"H{next_row}", {"numberFormat": {"type": "PERCENT", "pattern": "0.00%"}})
+                            sheet.format(f'I{next_row}:L{next_row}', {"numberFormat": {"type":'NUMBER'}})
+                            time.sleep(1)
+       
                         if brand == "노마셀":
                             print("노마셀 입력 시작")
                             print(new_selected_rows)
 
-                            # range_to_write = f'A{next_row}:K{next_row}'
-                            # updates.append({'range': range_to_write, 'values': new_selected_rows})
+                            range_to_write = f'A{next_row}:K{next_row}'
+                            updates.append({'range': range_to_write, 'values': new_selected_rows})
 
-                            # sheet.update(new_selected_rows, range_to_write)
-
-                            # # 셀 포맷 설정
-                            # sheet.format(f"G{next_row}", {"numberFormat": {"type": "PERCENT", "pattern": "0.00%"}})
-                            # sheet.format(f'H{next_row}:J{next_row}', {"numberFormat": {"type":'NUMBER'}})
-                            # time.sleep(1)
+                            sheet.update(new_selected_rows, range_to_write)
 
                             # 셀 포맷 설정
-                            formats.append({
-                                'range': f"G{next_row}",
-                                'format': {"numberFormat": {"type": "PERCENT", "pattern": "0.00%"}}
-                            })
-                            formats.append({
-                                'range': f'H{next_row}:J{next_row}',
-                                'format': {"numberFormat": {"type": 'NUMBER'}}
-                            })
+                            sheet.format(f"G{next_row}", {"numberFormat": {"type": "PERCENT", "pattern": "0.00%"}})
+                            sheet.format(f'H{next_row}:J{next_row}', {"numberFormat": {"type":'NUMBER'}})
+                            time.sleep(1)
 
-                if updates:
-                    print(updates)
-                    sheet.batch_update(updates)
-                    for fmt in formats:
-                        sheet.format(fmt['range'], fmt['format'])
-                    updates.clear()
-                    formats.clear()
-                    time.sleep(0.5)  # 각 배치 요청 사이에 지연 시간을 추가
-                    print("Batch update and format applied.")
+                        next_row += 1
 
                 today_tday += timedelta(days=1)
 
@@ -2505,8 +2479,8 @@ class Rawdata_extractor(QWidget):
             sheet_url_goog = "https://docs.google.com/spreadsheets/d/1V8b3FRe_8witwHXQceekgm-BAvTQLwwkcyuaW-mIi30/edit#gid=1966867512"
             sheet_name_goog = "하엔 구글 R"
             brand = "하엔"
-            google(url_ads_haen)
-            google_rawdata(sheet_url_goog, sheet_name_goog, brand)
+            advt_google(url_ads_haen)
+            advt_google_rawdata(sheet_url_goog, sheet_name_goog, brand)
 
 
         if self.know_advtGgle.isChecked() == True:
@@ -2514,9 +2488,775 @@ class Rawdata_extractor(QWidget):
             sheet_url_goog = "https://docs.google.com/spreadsheets/d/12FWmZMuznsxOY_IDbBWeSis-EW1Ds1f9TB6X7K6TFBc/edit#gid=1001228164"
             sheet_name_goog = "노마셀 구글 R"
             brand = "노마셀"
-            google(url_ads_know)
-            google_rawdata(sheet_url_goog, sheet_name_goog, brand)
+            advt_google(url_ads_know)
+            advt_google_rawdata(sheet_url_goog, sheet_name_goog, brand)
+        
+        
+# # 메타 광고
+#         def meta_rawdata(sheet_url, sheet_name, know_TF):
 
+#             xlsx_file = get_latest_file(download_folder)
+#             wb = load_workbook(xlsx_file)
+#             ws = wb.active
+
+#             # 서비스 계정 키 파일 경로
+#             credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+
+#             # gspread 클라이언트 초기화
+#             client = gspread.service_account(filename=credential_file)
+
+#             # Google 시트 열기
+#             spreadsheet = client.open_by_url(sheet_url)
+
+#             # 첫 번째 시트 선택
+#             sheet = spreadsheet.worksheet(sheet_name)
+
+#             # else:
+#             data_to_paste = []
+#             data_to_pasteDay = []
+#             today_tdayTemp = today_tday
+
+#             # 8. 메타 n일전 데이터 불러오기(데이터 없으면 더미데이터 입력)
+#             # 두 번째 행이 비어있는지 확인
+#             second_row = list(ws.iter_rows(min_row=2, max_row=2, values_only=True))
+#             if second_row and all(cell is None for cell in second_row[0]):
+#                 while today_tdayTemp != today:
+#                     metaDataEmpty = [str(today_tdayTemp), '-', 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, 0, 0, str(today_tdayTemp), str(today_tdayTemp)]
+
+#                     last_row = len(sheet.get_all_values())
+#                     print(last_row)
+#                     next_row = last_row + 1  # 다음 행 번호
+
+#                     # 데이터 추가
+#                     range_to_write = f'A{next_row}:Q{next_row}'
+#                     sheet.update([metaDataEmpty], range_to_write) #한줄
+
+#                     today_tdayTemp += timedelta(days=1)
+                    
+
+#             else:
+#                 for row in ws.iter_rows(min_row=2, values_only=True):
+#                     data_to_paste.append(list(row))
+#                 data_to_paste.reverse()
+#                 print(data_to_paste)
+#                 for i in data_to_paste:
+#                     data_to_pasteDay.append(i[0])
+
+#                 print(data_to_pasteDay)
+
+#                 print(today_tdayTemp)
+#                 print(today_yday)
+
+#                 while today_tdayTemp != today_yday:
+#                     if str(today_tdayTemp) in data_to_pasteDay:
+#                         num = data_to_pasteDay.index(str(today_tdayTemp))
+#                         data_to_paste[num]
+
+#                         last_row = len(sheet.get_all_values())
+#                         print(last_row)
+#                         next_row = last_row + 1  # 다음 행 번호
+
+#                         # 데이터 추가
+#                         range_to_write = f'B{next_row}:Q{next_row}'
+#                         range_to_write2 = f'A{next_row}'
+#                         sheet.update([[today_tdayTemp]], range_to_write2) #한줄
+#                         sheet.update([data_to_paste[num]], range_to_write) #한줄
+
+#                     today_tdayTemp += timedelta(days=1)
+
+#             # targe1 = ws['2']
+#             # targe2 = ws['3']
+#             # data_to_paste_know1 = []
+#             # data_to_paste_know2 = []
+#             # for cell in targe1:
+#             #     data_to_paste_know1.append(cell.value)
+#             # for cell in targe2:
+#             #     data_to_paste_know2.append(cell.value)
+#             # print(data_to_paste_know1)
+#             # print(data_to_paste_know2)
+
+#             last_row = len(sheet.get_all_values())
+#             print(last_row)
+#             next_row = last_row + 1  # 다음 행 번호
+
+#             # # 데이터 추가
+#             # range_to_write = f'B{next_row}:Q{next_row}'
+#             # sheet.update([data_to_paste_know1], range_to_write) #한줄
+#             # sheet.update([data_to_paste_know1], range_to_write) #한줄
+            
+#             # K 값 지정
+#             K_value = sheet.acell(f'K{next_row}').value
+#             K_value_previous = sheet.acell(f'K{next_row-1}').value
+
+#             if sheet.acell(f'A{next_row}').value is not None and K_value is None: #웹사이트 구매 빈칸일 때
+#                 sheet.update([[K_value_previous]], f'K{next_row}')
+
+#             # range_to_write = f'B{next_row+1}:Q{next_row+1}'
+#             # sheet.update([data_to_paste_know2], range_to_write) #두줄
+
+#             time.sleep(2)
+#             K_value = sheet.acell(f'K{next_row+1}').value
+#             if sheet.acell(f'A{next_row+1}').value is not None and K_value is None: #웹사이트 구매 빈칸일 때
+#                 sheet.update([[K_value_previous]], f'K{next_row+1}')
+
+#         # 메타
+#         def meta(url_meta, know_TF):
+
+#             # 크롬 On
+#             chromedriver_path = chromedriver_autoinstaller.install()
+#             chrome_options = webdriver.ChromeOptions()
+#             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+#             chrome_options.add_argument("--start-maximized") #최대 크기로 시작
+#             chrome_options.add_experimental_option('detach', True)
+
+#             user_data = self.chrome_path_folder.text()
+#             user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
+#             chrome_options.add_argument(f"user-data-dir={user_data}")
+#             chrome_options.add_argument("--profile-directory=Profile 1")
+            
+#             user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+#             headers = {'user-agent' : user_agent}
+
+#             driver = webdriver.Chrome(
+#                 service=Service(chromedriver_path),
+#                 options=chrome_options
+#             )
+
+#             driver.get(url_meta)
+
+#             # meta_id = 'healer10@kakao.com'
+#             # meta_pw = 'fhdifxmfl1305!!'
+
+#             # '비밀번호를' 텍스트를 포함하는 요소 찾기
+#             time.sleep(2)
+
+#             try:
+#                 WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "비밀번호를")]')))
+#                 pw = driver.find_element(By.XPATH, '//*[contains(text(), "비밀번호를")]')
+
+#                 if pw:
+#                     print("pw 만족")
+#                     # 이전 형제 요소 찾기
+#                     parent_element = pw.find_element(By.XPATH, '..')
+#                     previous_sibling = parent_element.find_element(By.XPATH, 'preceding-sibling::*[1]')
+#                     print("Previous sibling found:", previous_sibling.text)
+#                     print
+#                     previous_sibling.click()
+                
+#                 else:
+#                     print("요소를 찾을 수 없습니다.")
+
+#                 time.sleep(1)
+#                 driver.get(url_meta)
+
+#             except:
+#                 pass
+#             #알림 제거
+#             try:
+#                 body = driver.find_element(By.CSS_SELECTOR, 'body')
+#                 ActionChains(driver).move_to_element(body).click().perform()
+#             except: pass
+
+
+#             # 달력 열기
+#             WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="PNG_EXPORT"]/div/div[3]/div[1]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/span')))
+#             driver.find_element(By.XPATH, '//*[@id="PNG_EXPORT"]/div/div[3]/div[1]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/span').click()
+
+#             # 오늘 선택하기
+#             WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "오늘")]'))).click()
+
+#             # 달력 열기
+#             WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="PNG_EXPORT"]/div/div[3]/div[1]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/span')))
+#             driver.find_element(By.XPATH, '//*[@id="PNG_EXPORT"]/div/div[3]/div[1]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/span').click()
+
+#             WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, f'//*[contains(text(), "{Tday_month월}")]')))
+#             mon = driver.find_element(By.XPATH, f'//*[contains(text(), "{Tday_month월}")]')
+
+#             print(Tday_month월)
+#             print(mon.text)
+
+#             time.sleep(1)
+#             if mon.text == Tday_month월:
+#                 parent_element = mon.find_element(By.XPATH, "..")
+#                 next_sibling = parent_element.find_element(By.XPATH, 'following-sibling::*[1]')
+#                 time.sleep(1)
+                
+            
+#                 # 시작날짜선택
+#                 d = next_sibling.find_elements(By.XPATH, ".//div")
+#                 for i in d:
+#                     if i.text == today_Tday일:
+#                         i.click()
+#                         break
+#                 time.sleep(1)
+
+#                 # 종료날짜선택
+#                 for i in d:
+#                     if i.text == today_Yday일:
+#                         i.click()
+#                         break
+#                 time.sleep(1)
+
+#                 updateElements = driver.find_element(By.XPATH, '//*[contains(text(), "취소")]')
+
+#                 # if len(updateElements) > 1:  # 요소가 두 개 이상 있는지 확인
+#                 ancestor = updateElements.find_element(By.XPATH,"../../../../..")
+#                 ancestor_sibling = ancestor.find_element(By.XPATH, 'following-sibling::*[1]')
+#                 print(ancestor_sibling.find_element(By.XPATH, "./*/*/*/*/*").text)
+#                 print(ancestor_sibling)
+#                 ancestor_sibling.click()
+#                 # else:
+#                 #     print("두 번째 요소를 찾을 수 없습니다.")
+                
+
+#             elif mon.text != Tday_month월:
+#                 prevmonth = driver.find_element(By.XPATH, '//*[contains(text(), "이전 달")]')
+#                 prevmonth.find_element(By.XPATH, "..").click()
+#                 time.sleep(0.5)
+
+#                 mon = driver.find_element(By.XPATH, f'//*[contains(text(), "{Tday_month월}")]')
+#                 time.sleep(1)
+
+#                 if mon.text == Tday_month월:
+#                     parent_element = mon.find_element(By.XPATH, "..")
+#                     next_sibling = parent_element.find_element(By.XPATH, 'following-sibling::*[1]')
+                
+            
+#                     # 시작날짜선택
+#                     d = next_sibling.find_elements(By.XPATH, ".//div")
+#                     for i in d:
+#                         if i.text == today_Tday일:
+#                             i.click()
+#                             break
+#                     time.sleep(1)
+
+#                     # 종료날짜선택
+#                     if mon.text == Yday_month월:
+#                         for i in d:
+#                             if i.text == today_Tday일:
+#                                 i.click()
+#                                 break
+#                         time.sleep(1)
+                    
+#                     else:
+#                         mon = driver.find_element(By.XPATH, f'//*[contains(text(), "{Yday_month월}")]')
+
+#                         parent_element = mon.find_element(By.XPATH, "..")
+#                         next_sibling = parent_element.find_element(By.XPATH, 'following-sibling::*[1]')
+                    
+#                         time.sleep(1)
+
+#                         # 텍스트 값 출력
+#                         d = next_sibling.find_elements(By.XPATH, ".//div")
+#                         for i in d:
+#                             if i.text == today_Tday일:
+#                                 i.click()
+#                                 break
+
+#                 updateElements = driver.find_elements(By.XPATH, '//*[contains(text(), "업데이트")]')
+
+#                 if len(updateElements) > 1:  # 요소가 두 개 이상 있는지 확인
+#                     print("요소가 두개입니다.")
+#                     updateElements[2].click()
+#                 else:
+#                     print("두 번째 요소를 찾을 수 없습니다.")
+                
+
+#             else:
+#                 print("요소를 찾을 수 없습니다.")  
+
+            
+#             element = driver.find_element(By.CSS_SELECTOR, "#export_button > div > div > span > div > div.xeuugli.x2lwn1j.x6s0dn4.x78zum5.x1q0g3np.x1iyjqo2.xozqiw3.x19lwn94.x1hc1fzr.x13dflua.x6o7n8i.xxziih7.x12w9bfk.xl56j7k.xh8yej3 > div > div")
+#             driver.find_element(By.CSS_SELECTOR, "#export_button > div > div > span > div > div.xeuugli.x2lwn1j.x6s0dn4.x78zum5.x1q0g3np.x1iyjqo2.xozqiw3.x19lwn94.x1hc1fzr.x13dflua.x6o7n8i.xxziih7.x12w9bfk.xl56j7k.xh8yej3 > div > div").click() #내보내기
+#             time.sleep(1.5)
+#             ActionChains(driver).move_to_element_with_offset(element,-579,497).click().perform() #다운로드
+
+            
+#             while True:
+#                 check_download()
+#                 if check == 0:
+#                         driver.find_element(By.CSS_SELECTOR, "#export_button > div > div > span > div > div.xeuugli.x2lwn1j.x6s0dn4.x78zum5.x1q0g3np.x1iyjqo2.xozqiw3.x19lwn94.x1hc1fzr.x13dflua.x6o7n8i.xxziih7.x12w9bfk.xl56j7k.xh8yej3 > div > div").click() #내보내기
+#                         time.sleep(1)
+#                         ActionChains(driver).move_to_element_with_offset(element,-579,497).click().perform() #다운로드
+#                 else: break
+
+                
+#             time.sleep(3)
+        
+#         #메타 하엔
+#         if self.haen_advtMeta.isChecked() == True:
+#             url_meta_haen = 'https://adsmanager.facebook.com/adsmanager/reporting/view?act=774078054299392&business_id=341660836507461&selected_report_id=120202962853720679' #하엔
+#             sheet_url_haen_all = 'https://docs.google.com/spreadsheets/d/1V8b3FRe_8witwHXQceekgm-BAvTQLwwkcyuaW-mIi30/edit#gid=168246212'
+#             sheet_name_haen = '하엔 페이스북 R'
+#             know_TF = 0
+
+#             meta(url_meta_haen, know_TF)
+#             meta_rawdata(sheet_url_haen_all, sheet_name_haen, know_TF)
+
+#         #메타 러블로
+#         if self.love_advtMeta.isChecked() == True:
+#             url_meta_lovelo = 'https://adsmanager.facebook.com/adsmanager/reporting/view?act=1913234209031352&business_id=267018165996779&selected_report_id=120200964749160675' #러블로
+#             sheet_url_love_all = 'https://docs.google.com/spreadsheets/d/1NVnVJsCj0Ap_o2xabua9ANUw_1IUREVMJKteY_O1yks/edit#gid=1607702031'
+#             sheet_name_love = '러블로 페이스북 R'
+#             know_TF = 0
+
+#             meta(url_meta_lovelo, know_TF)
+#             meta_rawdata(sheet_url_love_all, sheet_name_love, know_TF)
+
+#         #메타 노마셀
+#         if self.know_advtMeta.isChecked() == True:
+#             url_meta_knowmycell = 'https://adsmanager.facebook.com/adsmanager/reporting/view?act=238068255778220&business_id=635001998695042&selected_report_id=120200841324100083' #노마셀
+#             sheet_url_know_all = 'https://docs.google.com/spreadsheets/d/12FWmZMuznsxOY_IDbBWeSis-EW1Ds1f9TB6X7K6TFBc/edit#gid=137297262'
+#             sheet_name_know = '노마셀 페이스북 R'
+#             know_TF = 1
+
+#             meta(url_meta_knowmycell, know_TF)
+#             meta_rawdata(sheet_url_know_all, sheet_name_know, know_TF)
+
+
+# 방문자수
+        def visitors(url, id, pw, sheet_url, sheet_name):
+
+            # 크롬 On
+            chromedriver_path = chromedriver_autoinstaller.install()
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            chrome_options.add_argument("--start-maximized") #최대 크기로 시작
+            chrome_options.add_experimental_option('detach', True)
+
+            user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
+            chrome_options.add_argument(f"user-data-dir={user_data}")
+            chrome_options.add_argument("--profile-directory=Profile 1")
+        
+            user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+            headers = {'user-agent' : user_agent}
+
+            driver = webdriver.Chrome(
+                service=Service(chromedriver_path),
+                options=chrome_options
+            )
+
+            driver.get(url_cafe24)
+
+            ##################################### 로그인
+            ##################################### 로그인
+            ##################################### 로그인
+            ##################################### 로그인
+
+            # ID
+            input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#mall_id")))
+            input_field.click()
+            time.sleep(1)
+            input_field.send_keys(Keys.CONTROL + "a")
+            input_field.send_keys(Keys.BACKSPACE)
+            driver.find_element(By.CSS_SELECTOR, "#mall_id").send_keys(id)
+
+            # PW
+            input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#userpasswd")))
+            input_field.click()
+            input_field.send_keys(Keys.CONTROL + "a")
+            input_field.send_keys(Keys.BACKSPACE)
+            driver.find_element(By.CSS_SELECTOR, "#userpasswd").send_keys(pw)
+
+            # 로그인클릭
+            driver.find_element(By.CSS_SELECTOR,'#frm_user > div > div.mButton > button').click()
+
+            #비밀번호변경안내
+            try: WebDriverWait(driver, 5).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#iptBtnEm")))).click() 
+            except: pass
+
+            try:
+                time.sleep(3)
+                popup = driver.find_element(By.XPATH, '//*[contains(text(), "오늘 하루 보지 않기")]')
+                popup.click()
+
+            except: pass
+
+            #화면로딩대기
+            WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.XPATH, '//*[contains(text(), "오늘의 할 일")]')))
+            ###################################### 조회수
+            ###################################### 조회수
+            ###################################### 조회수
+            ###################################### 조회수
+
+            driver.find_element(By.CSS_SELECTOR, "#mCSB_2_container > ul:nth-child(1) > li:nth-child(9)").click() #통계 클릭
+            WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#mCSB_3_container > div.depthList > ul > li:nth-child(8)"))).click() #접속통계클릭
+
+            #새 창 대기
+            current_window_handle = driver.current_window_handle
+
+            new_window_handle = None
+            while not new_window_handle:
+                for handle in driver.window_handles:
+                    if handle != current_window_handle:
+                        new_window_handle = handle
+                        break
+
+
+            #팝업으로 제어 변경
+            driver.switch_to.window(driver.window_handles[1]) 
+
+            WebDriverWait(driver, 15).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#rpt_pth")))).click() #방문경로분석
+            WebDriverWait(driver, 15).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#rpt_pth_dod")))).click() #방문도메인(상세)
+            WebDriverWait(driver, 15).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#body_center > table:nth-child(5) > tbody > tr:nth-child(2) > td:nth-child(3) > a:nth-child(2) > img")))).click()
+
+            for ii in range(1, target_days_input+1):
+
+                # 달력클릭
+                WebDriverWait(driver, 15).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#body_center > table:nth-child(5) > tbody > tr:nth-child(2) > td:nth-child(2) > a:nth-child(3)")))).click()
+
+                days_vis = datetime.timedelta(days=ii)
+                before_day_vis = today-days_vis
+                
+
+                #시작
+                #년도 선택
+                before_year = (before_day_vis).strftime("%Y")
+                select_element = driver.find_element(By.CSS_SELECTOR, '#yearSB_1')
+                select = Select(select_element)
+                select.select_by_value(before_year)
+
+                #달 선택
+                before_month = str(int((before_day_vis).strftime("%m")))
+                select_element = driver.find_element(By.CSS_SELECTOR, '#monthSB_1')
+                select = Select(select_element)
+                select.select_by_value(before_month)
+
+                #일 선택
+                before_day1 = str(int((before_day_vis).strftime("%d")))
+                for i in range(1, 43):
+                    try:
+                        element = driver.find_element(By.ID, f'li_{i}')
+                        if element.text == before_day1:
+                            element.click()
+                            print("before_day1 clicked")
+                            break
+
+                    except:
+                        print(f'li_{i} not found')
+
+
+                #끝
+                #년도 선택
+                select_element = driver.find_element(By.CSS_SELECTOR, '#yearSB_2')
+                select = Select(select_element)
+                select.select_by_value(before_year)
+
+                #달 선택
+                select_element = driver.find_element(By.CSS_SELECTOR, '#monthSB_2')
+                select = Select(select_element)
+                select.select_by_value(before_month)
+
+                #일 선택
+                for i in range(1, 43):
+                    try:
+                        element = driver.find_element(By.ID, f'le_{i}')
+                        if element.text == before_day1:
+                            element.click()
+                            print("before_day1 clicked")
+                            break
+
+                    except:
+                        print(f'le_{i} not found')
+
+                # 조회
+                driver.find_element(By.CSS_SELECTOR, "#body_center > table:nth-child(5) > tbody > tr:nth-child(2) > td:nth-child(2) > a:nth-child(4) > img").click()
+
+                visitors = driver.find_elements(By.ID, "summary_pfm_total")
+                for num in visitors:
+                    the_num = driver.find_element(By.CSS_SELECTOR, "#summary_pfm_total > td:nth-child(2)").text
+                    print(the_num)
+
+                # 서비스 계정 키 파일 경로
+                credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+
+                # gspread 클라이언트 초기화
+                client = gspread.service_account(filename=credential_file)
+
+                # Google 시트 열기
+                spreadsheet = client.open_by_url(sheet_url)
+
+                # 첫 번째 시트 선택
+                sheet = spreadsheet.worksheet(sheet_name)
+                todayy = today.strftime("%Y-%m-%d")
+                column_values = sheet.col_values(1)
+                for idx, cell_value in enumerate(column_values, start=1):  # start=1로 설정하여 행 번호를 1부터 시작
+                    if cell_value == todayy:
+                        print(cell_value)
+                        print(gspread.utils.rowcol_to_a1(idx, 1))
+                        cell_addr = gspread.utils.rowcol_to_a1(idx, 1)
+                        # return f"{gspread.utils.rowcol_to_a1(idx, 1)}"  # 셀 주소 반환
+                    
+                (start_row, start_col) = gspread.utils.a1_to_rowcol(cell_addr)
+
+                # Google 시트에 데이터 쓰기
+                numeric_value = int(the_num.replace(',', ''))
+                range_to_write = f'C{start_row-ii}'
+                sheet.update([[numeric_value]], range_to_write)
+
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0]) #팝업으로 제어 변경
+            driver.close()
+
+        if self.haen_visitors.isChecked() == True:
+
+            url_cafe24 = "https://eclogin.cafe24.com/Shop/"
+            
+            cafe24_id_haen = self.login_info("CAFE_HAEN_ID")
+            cafe24_pw_haen = self.login_info("CAFE_HAEN_PW")
+
+            sheet_haenR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=1894651086'
+            sheet_haenD = "하엔D"
+        
+            visitors(url_cafe24, cafe24_id_haen, cafe24_pw_haen, sheet_haenR_url, sheet_haenD)
+
+        #카페24 러블로
+        if self.love_visitors.isChecked() == True:
+
+            url_cafe24 = "https://eclogin.cafe24.com/Shop/" 
+
+            cafe24_id_lovelo = self.login_info("CAFE_LOVE_ID")
+            cafe24_pw_lovelo = self.login_info("CAFE_LOVE_PW")
+
+            sheet_loveR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=872830966'
+            sheet_loveD = "러블로D"
+
+            visitors(url_cafe24, cafe24_id_lovelo, cafe24_pw_lovelo, sheet_loveR_url, sheet_loveD)
+
+        #카페24 노마셀
+        if self.know_visitors.isChecked() == True:
+
+            url_cafe24 = "https://eclogin.cafe24.com/Shop/" 
+
+            cafe24_id_knowmycell = self.login_info("CAFE_KNOW_ID")
+            cafe24_pw_knowmycell = self.login_info("CAFE_KNOW_PW")
+
+            sheet_knowR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=567505346'
+            sheet_knowD = "노마셀D"
+
+            visitors(url_cafe24, cafe24_id_knowmycell, cafe24_pw_knowmycell, sheet_knowR_url, sheet_knowD)
+
+# 신규 가입자
+        def new_member(url, id, pw, sheet_url, sheet_name):
+
+            # 크롬 On
+            chromedriver_path = chromedriver_autoinstaller.install()
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            chrome_options.add_argument("--start-maximized") #최대 크기로 시작
+            chrome_options.add_experimental_option('detach', True)
+
+            user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
+            chrome_options.add_argument(f"user-data-dir={user_data}")
+            chrome_options.add_argument("--profile-directory=Profile 1")
+        
+            user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+            headers = {'user-agent' : user_agent}
+
+            driver = webdriver.Chrome(
+                service=Service(chromedriver_path),
+                options=chrome_options
+            )
+
+            driver.get(url)
+
+            ##################################### 로그인
+            ##################################### 로그인
+            ##################################### 로그인
+            ##################################### 로그인
+
+            # ID
+            input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#mall_id")))
+            input_field.click()
+            time.sleep(1)
+            input_field.send_keys(Keys.CONTROL + "a")
+            input_field.send_keys(Keys.BACKSPACE)
+            driver.find_element(By.CSS_SELECTOR, "#mall_id").send_keys(id)
+
+            # PW
+            input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#userpasswd")))
+            input_field.click()
+            input_field.send_keys(Keys.CONTROL + "a")
+            input_field.send_keys(Keys.BACKSPACE)
+            driver.find_element(By.CSS_SELECTOR, "#userpasswd").send_keys(pw)
+
+            # 로그인클릭
+            driver.find_element(By.CSS_SELECTOR,'#frm_user > div > div.mButton > button').click()
+
+            #비밀번호변경안내
+            try: WebDriverWait(driver, 5).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#iptBtnEm")))).click() 
+            except: pass
+
+            try:
+                time.sleep(3)
+                popup = driver.find_element(By.XPATH, '//*[contains(text(), "오늘 하루 보지 않기")]')
+                popup.click()
+
+            except: pass
+
+            #화면로딩대기
+            WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.XPATH, '//*[contains(text(), "오늘의 할 일")]')))
+            ###################################### 신규회원
+            ###################################### 신규회원
+            ###################################### 신규회원
+            ###################################### 신규회원
+
+            driver.find_element(By.CSS_SELECTOR, "#mCSB_2_container > ul:nth-child(1) > li:nth-child(9)").click() #통계 클릭
+            WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#mCSB_3_container > div.depthList > ul > li:nth-child(8)"))).click() #접속통계클릭
+
+            #새 창 대기
+            current_window_handle = driver.current_window_handle
+
+            new_window_handle = None
+            while not new_window_handle:
+                for handle in driver.window_handles:
+                    if handle != current_window_handle:
+                        new_window_handle = handle
+                        break
+
+
+            #팝업으로 제어 변경
+            driver.switch_to.window(driver.window_handles[1]) 
+
+            WebDriverWait(driver, 15).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#rpt_vis")))).click() #방문자분석
+            WebDriverWait(driver, 15).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#rpt_vis_nmb")))).click() #신규회원수
+            WebDriverWait(driver, 15).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#body_center > table:nth-child(5) > tbody > tr:nth-child(2) > td:nth-child(3) > a:nth-child(2) > img")))).click()
+
+            for ii in range(1, target_days_input+1):
+
+                # 달력클릭
+                WebDriverWait(driver, 15).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#body_center > table:nth-child(5) > tbody > tr:nth-child(2) > td:nth-child(2) > a:nth-child(3)")))).click()
+
+                days_vis = datetime.timedelta(days=ii)
+                before_day_vis = today-days_vis
+                
+
+                #시작
+                #년도 선택
+                before_year = (before_day_vis).strftime("%Y")
+                select_element = driver.find_element(By.CSS_SELECTOR, '#yearSB_1')
+                select = Select(select_element)
+                select.select_by_value(before_year)
+
+                #달 선택
+                before_month = str(int((before_day_vis).strftime("%m")))
+                select_element = driver.find_element(By.CSS_SELECTOR, '#monthSB_1')
+                select = Select(select_element)
+                select.select_by_value(before_month)
+
+                #일 선택
+                before_day1 = str(int((before_day_vis).strftime("%d")))
+                for i in range(1, 43):
+                    try:
+                        element = driver.find_element(By.ID, f'li_{i}')
+                        if element.text == before_day1:
+                            element.click()
+                            print("before_day1 clicked")
+                            break
+
+                    except:
+                        print(f'li_{i} not found')
+
+
+                #끝
+                #년도 선택
+                select_element = driver.find_element(By.CSS_SELECTOR, '#yearSB_2')
+                select = Select(select_element)
+                select.select_by_value(before_year)
+
+                #달 선택
+                select_element = driver.find_element(By.CSS_SELECTOR, '#monthSB_2')
+                select = Select(select_element)
+                select.select_by_value(before_month)
+
+                #일 선택
+                for i in range(1, 43):
+                    try:
+                        element = driver.find_element(By.ID, f'le_{i}')
+                        if element.text == before_day1:
+                            element.click()
+                            print("before_day1 clicked")
+                            break
+
+                    except:
+                        print(f'le_{i} not found')
+
+                # 조회
+                driver.find_element(By.CSS_SELECTOR, "#body_center > table:nth-child(5) > tbody > tr:nth-child(2) > td:nth-child(2) > a:nth-child(4) > img").click()
+                total_nmb = driver.find_elements(By.ID, "summary_pfm_total")
+                for num in total_nmb:
+                    total_num = driver.find_element(By.CSS_SELECTOR, "#summary_pfm_total > td:nth-child(2)").text
+                    print(total_num)
+
+                # 서비스 계정 키 파일 경로
+                credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+
+                # gspread 클라이언트 초기화
+                client = gspread.service_account(filename=credential_file)
+
+                # Google 시트 열기
+                spreadsheet = client.open_by_url(sheet_url)
+
+                # 첫 번째 시트 선택
+                sheet = spreadsheet.worksheet(sheet_name)
+                todayy = today.strftime("%Y-%m-%d")
+                column_values = sheet.col_values(1)
+                for idx, cell_value in enumerate(column_values, start=1):  # start=1로 설정하여 행 번호를 1부터 시작
+                    if cell_value == todayy:
+                        print(cell_value)
+                        print(gspread.utils.rowcol_to_a1(idx, 1))
+                        cell_addr = gspread.utils.rowcol_to_a1(idx, 1)
+                        # return f"{gspread.utils.rowcol_to_a1(idx, 1)}"  # 셀 주소 반환
+                    
+                (start_row, start_col) = gspread.utils.a1_to_rowcol(cell_addr)
+
+                # Google 시트에 데이터 쓰기
+                numeric_value = int(total_num.replace(',', ''))
+                range_to_write = f'C{start_row-ii}'
+                sheet.update([[numeric_value]], range_to_write)
+
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0]) #팝업으로 제어 변경
+            driver.close()
+
+        if self.haen_newMemb.isChecked() == True:
+
+            url_cafe24 = "https://eclogin.cafe24.com/Shop/"
+            
+            cafe24_id_haen = self.login_info("CAFE_HAEN_ID")
+            cafe24_pw_haen = self.login_info("CAFE_HAEN_PW")
+
+            sheet_haenR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=1894651086'
+            sheet_name = "하엔신규"
+        
+            new_member(url_cafe24, cafe24_id_haen, cafe24_pw_haen, sheet_haenR_url, sheet_name)
+
+        #카페24 러블로
+        if self.love_newMemb.isChecked() == True:
+
+            url_cafe24 = "https://eclogin.cafe24.com/Shop/" 
+
+            cafe24_id_lovelo = self.login_info("CAFE_LOVE_ID")
+            cafe24_pw_lovelo = self.login_info("CAFE_LOVE_PW")
+
+            sheet_loveR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=872830966'
+            sheet_name = "러블로신규"
+
+            new_member(url_cafe24, cafe24_id_lovelo, cafe24_pw_lovelo, sheet_loveR_url, sheet_name)
+
+        #카페24 노마셀
+        if self.know_newMemb.isChecked() == True:
+
+            url_cafe24 = "https://eclogin.cafe24.com/Shop/" 
+
+            cafe24_id_knowmycell = self.login_info("CAFE_KNOW_ID")
+            cafe24_pw_knowmycell = self.login_info("CAFE_KNOW_PW")
+
+            sheet_knowR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=567505346'
+            sheet_name = "노마셀신규"
+
+            new_member(url_cafe24, cafe24_id_knowmycell, cafe24_pw_knowmycell, sheet_knowR_url, sheet_name)
+                    
 
     def saveText(self):
         text = self.path_folder.text()
