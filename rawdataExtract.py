@@ -3350,12 +3350,14 @@ class Rawdata_extractor(QWidget):
 
                         # 다운로드 확인
                         cnt = 1
+                        current_file_count1 = count_files(download_folder)
                         while cnt < 10:
-                            current_file_count1 = count_files(download_folder)
                             element.click()
                             time.sleep(3)
                             current_file_count2 = count_files(download_folder)
                             if current_file_count1 != current_file_count2:
+                                break
+                            elif cnt == 300:
                                 break
 
                             cnt += 1
@@ -4323,16 +4325,16 @@ class Rawdata_extractor(QWidget):
 
                         WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#log\.login")))
                         
-                        txtInput = driver.find_element(By.CSS_SELECTOR, "#id")
+                        txtInput = edge_driver.find_element(By.CSS_SELECTOR, "#id")
                         txtInput.send_keys("wntlsqhr")
                         time.sleep(0.1)
-                        txtInput = driver.find_element(By.CSS_SELECTOR, "#pw")
+                        txtInput = edge_driver.find_element(By.CSS_SELECTOR, "#pw")
                         txtInput.send_keys("dnflskfk00@")
                         time.sleep(0.1)
                         driver.find_element(By.CSS_SELECTOR, "#log\.login")
 
                         #원래 페이지로 제어 변경
-                        driver.switch_to.window(driver.window_handles[0])
+                        edge_driver.switch_to.window(edge_driver.window_handles[0])
 
 
                     # 상품별 이동

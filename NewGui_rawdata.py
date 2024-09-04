@@ -167,6 +167,11 @@ class Rawdata_extractor(QWidget):
         self.know_advtNaver.move(660,135)
         self.know_advtNaver.setFont(QFont('Helvetia', 11))
 
+        # 제니크
+        self.zq_advtNaver = QCheckBox("제니크",self)
+        self.zq_advtNaver.move(740,135)
+        self.zq_advtNaver.setFont(QFont('Helvetia', 11))
+
     # GFA
         self.advtGFA = QLabel("GFA",self)
         self.advtGFA.move(500,170)
@@ -247,6 +252,11 @@ class Rawdata_extractor(QWidget):
         self.know_advtMeta.move(660,375)
         self.know_advtMeta.setFont(QFont('Helvetia', 11))
 
+        # 제니크
+        self.zq_advtMeta = QCheckBox("제니크",self)
+        self.zq_advtMeta.move(740,375)
+        self.zq_advtMeta.setFont(QFont('Helvetia', 11))
+
 
 # 기타 group box
         self.etc_group_box = QGroupBox("기타",self)
@@ -274,6 +284,11 @@ class Rawdata_extractor(QWidget):
         self.know_visitors.move(210,405)
         self.know_visitors.setFont(QFont('Helvetia', 11))
 
+        # 제니크
+        self.zq_visitors = QCheckBox("제니크",self)
+        self.zq_visitors.move(290,405)
+        self.zq_visitors.setFont(QFont('Helvetia', 11))
+
     # 카페24 신규가입자수
         self.newMemb = QLabel("신규가입자수",self)
         self.newMemb.move(50,440)
@@ -293,6 +308,11 @@ class Rawdata_extractor(QWidget):
         self.know_newMemb = QCheckBox("노마셀",self)
         self.know_newMemb.move(210,465)
         self.know_newMemb.setFont(QFont('Helvetia', 11))
+
+        # 제니크
+        self.zq_newMemb = QCheckBox("제니크",self)
+        self.zq_newMemb.move(290,465)
+        self.zq_newMemb.setFont(QFont('Helvetia', 11))
 
         #불러오기 체크박스설정
         self.loadCheckboxState()
@@ -555,6 +575,7 @@ class Rawdata_extractor(QWidget):
 
         # 오늘 날짜 구하기
         global today_yday
+        global today_tday
         today_yday = today-day1
         today_tday = today-dayx
         today_Tday년월 = (today-dayx).strftime("%Y년 %m월")
@@ -1028,6 +1049,7 @@ class Rawdata_extractor(QWidget):
 
             sales_coup(coupC_url, coupang_id_know, coupang_pw_know, sheet_url_coupC, sheet_name_knowC, options)
 
+# 네이버 매출
         def ssDown(brand):
 
             # 날짜 구하기
@@ -1192,7 +1214,7 @@ class Rawdata_extractor(QWidget):
                 
             edge_driver.close()
 
-# 네이버 매출
+
         def ssWrite(sheet_name, sheet_url):
             defaultData = ["화장품/미용", "바디케어", "입욕제", "-", "러블로 러브슬라임 슬라임탕 젤 입욕제 젤탕", "9019908272",	"일반배송",	"0", "0", "0", "0.00%"]
             # 날짜 구하기
@@ -1941,6 +1963,120 @@ class Rawdata_extractor(QWidget):
             naverad(target_url)
             naveradInput(sheet_url, sheet_name)
 
+        if self.zq_advtNaver.isChecked() == True:
+
+            sheet_url = 'https://docs.google.com/spreadsheets/d/1aGDKs5seG0d8CzQ99_pKBNFQCNRdC1-AppwIfi1zSuc/edit?gid=1913139260#gid=1913139260'
+            sheet_name = '제니크 네이버 R'
+            target_url = "https://manage.searchad.naver.com/customers/3163563/reports/rtt-a001-000000000725619"
+            
+            naverad(target_url)
+            naveradInput(sheet_url, sheet_name)
+
+
+# 네이버 gfa
+        def advt_gfa(url, sheet_url, sheet_name):
+
+            # 서비스 계정 키 파일 경로
+            credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+
+            # gspread 클라이언트 초기화
+            client = gspread.service_account(filename=credential_file)
+
+            # Google 시트 열기
+            spreadsheet = client.open_by_url(sheet_url)
+
+            # 첫 번째 시트 선택
+            sheet = spreadsheet.worksheet(sheet_name)
+
+
+            edge_options = webdriver.EdgeOptions()
+            edge_options.use_chromium = True
+            edge_options.add_argument("disable-gpu")
+            edge_options.add_argument("no-sandbox")
+
+
+            # 사용자의 프로필 경로 설정
+            profile_path = 'C:\\Users\\A\\AppData\\Local\\Microsoft\\Edge\\User Data1'
+            edge_options.add_argument(f"user-data-dir={profile_path}")
+            edge_options.add_argument("--profile-directory=Default")
+
+
+            # Edge 드라이버 서비스 시작
+            edge_service = Service(EdgeChromiumDriverManager().install())
+            edge_driver = webdriver.Edge(service=edge_service, options=edge_options)
+
+
+            edge_driver.get(url)
+
+            element = WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#content > div > div.panel_body.report > div:nth-child(2) > div > div > div.ad_title > div > div.inner_right > a > button")))
+
+            # 다운로드 확인
+            cnt = 1
+            current_file_count1 = count_files(download_folder)
+            while cnt < 10:
+                element.click()
+                time.sleep(3)
+                current_file_count2 = count_files(download_folder)
+                if current_file_count1 != current_file_count2:
+                    break
+                elif cnt == 300:
+                    break
+
+                cnt += 1
+            
+            # csv 파일 변수 지정
+            csv_file = get_latest_file(download_folder)
+
+            today_tday_temp = today_tday
+            
+
+            while today_tday_temp != today:
+                result = []
+                today_tday_gfa = str(today_tday_temp).replace("-", ".")+ "."
+
+                # 타겟 날짜에 맞는 데이터 고르기
+                with open(csv_file, newline='', encoding='utf-8') as csvfile:
+                    reader = csv.reader(csvfile)
+                    for i, row in enumerate(reader):
+                        if 1 <= i <= 100:  # 범위 내 행 적용
+                            if today_tday_gfa in row:
+                                print(row)
+                                
+                                for item in row:
+                                    if isinstance(item, str) and '%' in item:
+                                        result.append(float(item.strip('%')) / 100)
+                                    elif isinstance(item, str) and ',' in item:
+                                        result.append(int(item.replace(',', '')))
+                                    elif isinstance(item, str) and item.replace('.', '', 1).isdigit() and item.count('.') == 1:
+                                        result.append(float(item))
+                                    elif isinstance(item, str) and item.isdigit():
+                                        result.append(int(item))
+                                    else:
+                                        result.append(item)
+
+                                
+                                today_gfa = (row[2])[:-1].replace(".", "-")
+
+                                last_row = len(sheet.col_values(1))
+                                next_row = int(last_row) + 1
+
+                                range_to_write = f'B{next_row}:BY{next_row}'
+                                sheet.update([result], range_to_write)
+                                sheet.update([[today_gfa]], f'A{next_row}')
+
+                today_tday_temp += timedelta(days=1)
+
+
+        if self.haen_advtGFA.isChecked() == True:
+            url = "https://gfa.naver.com/adAccount/accounts/69648/report/performance?startDate=2024-08-27&endDate=2024-09-02&adUnit=AD_ACCOUNT&dateUnit=DAY&placeUnit=TOTAL&dimension=TOTAL&currentPage=1&pageSize=10&filterList=%5B%5D&showColList=%5B%22result%22,%22sales_per_result%22,%22sales%22,%22imp_count%22,%22cpm%22,%22click_count%22,%22cpc%22,%22ctr%22%5D&period=last7daysWithoutToday&accessAdAccountNo=69648"
+
+            sheet_url = "https://docs.google.com/spreadsheets/d/1V8b3FRe_8witwHXQceekgm-BAvTQLwwkcyuaW-mIi30/edit?gid=74286471#gid=74286471"
+
+            sheet_name = "하엔 네이버 GFA R"
+
+            advt_gfa(url, sheet_url, sheet_name)
+
+# 파워컨텐츠
         def power(url, url2,  id, pw, sheetUrl, sheetName, key, key2, brand):
 
             # 서비스 계정 키 파일 경로
@@ -2228,8 +2364,6 @@ class Rawdata_extractor(QWidget):
             driver.switch_to.window(driver.window_handles[0])
             driver.close()
 
-
-
         url_cafe24 = "https://eclogin.cafe24.com/Shop/" 
         
         if self.haen_advtPC.isChecked() == True:
@@ -2245,7 +2379,6 @@ class Rawdata_extractor(QWidget):
 
             power(url_cafe24, url2, cafe24_id_haen, cafe24_pw_haen, sheetUrl_haen, sheetName_haenPCR, Keyword, Keyword2, brand)
 
-
         if self.love_advtPC.isChecked() == True:
             cafe24_id_love = self.login_info("CAFE_LOVE_ID")
             cafe24_pw_love = self.login_info("CAFE_LOVE_PW")
@@ -2259,7 +2392,6 @@ class Rawdata_extractor(QWidget):
 
             power(url_cafe24, url2, cafe24_id_love, cafe24_pw_love, sheetUrl_love, sheetName_lovePCR, Keyword, Keyword2, brand)
 
-
         if self.know_advtPC.isChecked() == True:
             cafe24_id_know = self.login_info("CAFE_KNOW_ID")
             cafe24_pw_know = self.login_info("CAFE_KNOW_PW")
@@ -2272,6 +2404,8 @@ class Rawdata_extractor(QWidget):
             brand = "노마셀"
 
             power(url_cafe24, url2, cafe24_id_know, cafe24_pw_know, sheetUrl_know, sheetName_knowPCR, Keyword, Keyword2, brand)
+
+
 # 구글 광고
         def advt_google(url_google):
 
@@ -2472,8 +2606,6 @@ class Rawdata_extractor(QWidget):
 
                 today_tday += timedelta(days=1)
 
-        
-        # 구글
         if self.haen_advtGgle.isChecked() == True:
             url_ads_haen = 'https://ads.google.com/aw/reporteditor/view?ocid=1181720304&workspaceId=0&reportId=927965366&euid=1114690018&__u=8943315282&uscid=1181720304&__c=5821258096&authuser=0'
             sheet_url_goog = "https://docs.google.com/spreadsheets/d/1V8b3FRe_8witwHXQceekgm-BAvTQLwwkcyuaW-mIi30/edit#gid=1966867512"
@@ -2482,7 +2614,6 @@ class Rawdata_extractor(QWidget):
             advt_google(url_ads_haen)
             advt_google_rawdata(sheet_url_goog, sheet_name_goog, brand)
 
-
         if self.know_advtGgle.isChecked() == True:
             url_ads_know = 'https://ads.google.com/aw/reporteditor/view?ocid=1379143590&workspaceId=-1615213561&reportId=928192574&euid=1114690018&__u=8943315282&uscid=1379143590&__c=4267857910&authuser=0'
             sheet_url_goog = "https://docs.google.com/spreadsheets/d/12FWmZMuznsxOY_IDbBWeSis-EW1Ds1f9TB6X7K6TFBc/edit#gid=1001228164"
@@ -2490,329 +2621,224 @@ class Rawdata_extractor(QWidget):
             brand = "노마셀"
             advt_google(url_ads_know)
             advt_google_rawdata(sheet_url_goog, sheet_name_goog, brand)
-        
-        
-# # 메타 광고
-#         def meta_rawdata(sheet_url, sheet_name, know_TF):
 
-#             xlsx_file = get_latest_file(download_folder)
-#             wb = load_workbook(xlsx_file)
-#             ws = wb.active
 
-#             # 서비스 계정 키 파일 경로
-#             credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+# 메타 광고
+        def meta_rawdata(sheet_url, sheet_name, know_TF):
 
-#             # gspread 클라이언트 초기화
-#             client = gspread.service_account(filename=credential_file)
+            xlsx_file = get_latest_file(download_folder)
+            wb = load_workbook(xlsx_file)
+            ws = wb.active
 
-#             # Google 시트 열기
-#             spreadsheet = client.open_by_url(sheet_url)
+            # 서비스 계정 키 파일 경로
+            credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
 
-#             # 첫 번째 시트 선택
-#             sheet = spreadsheet.worksheet(sheet_name)
+            # gspread 클라이언트 초기화
+            client = gspread.service_account(filename=credential_file)
 
-#             # else:
-#             data_to_paste = []
-#             data_to_pasteDay = []
-#             today_tdayTemp = today_tday
+            # Google 시트 열기
+            spreadsheet = client.open_by_url(sheet_url)
 
-#             # 8. 메타 n일전 데이터 불러오기(데이터 없으면 더미데이터 입력)
-#             # 두 번째 행이 비어있는지 확인
-#             second_row = list(ws.iter_rows(min_row=2, max_row=2, values_only=True))
-#             if second_row and all(cell is None for cell in second_row[0]):
-#                 while today_tdayTemp != today:
-#                     metaDataEmpty = [str(today_tdayTemp), '-', 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, 0, 0, str(today_tdayTemp), str(today_tdayTemp)]
+            # 첫 번째 시트 선택
+            sheet = spreadsheet.worksheet(sheet_name)
 
-#                     last_row = len(sheet.get_all_values())
-#                     print(last_row)
-#                     next_row = last_row + 1  # 다음 행 번호
+            # else:
+            data_to_paste = []
+            data_to_pasteDay = []
+            today_tdayTemp = today_tday
 
-#                     # 데이터 추가
-#                     range_to_write = f'A{next_row}:Q{next_row}'
-#                     sheet.update([metaDataEmpty], range_to_write) #한줄
+            # 8. 메타 n일전 데이터 불러오기(데이터 없으면 더미데이터 입력)
+            # 두 번째 행이 비어있는지 확인
+            second_row = list(ws.iter_rows(min_row=2, max_row=2, values_only=True))
+            if second_row and all(cell is None for cell in second_row[0]):
+                while today_tdayTemp != today:
+                    metaDataEmpty = [str(today_tdayTemp), '-', 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, 0, 0, str(today_tdayTemp), str(today_tdayTemp)]
 
-#                     today_tdayTemp += timedelta(days=1)
+                    last_row = len(sheet.get_all_values())
+                    print(last_row)
+                    next_row = last_row + 1  # 다음 행 번호
+
+                    # 데이터 추가
+                    range_to_write = f'A{next_row}:Q{next_row}'
+                    sheet.update([metaDataEmpty], range_to_write) #한줄
+
+                    today_tdayTemp += timedelta(days=1)
                     
 
-#             else:
-#                 for row in ws.iter_rows(min_row=2, values_only=True):
-#                     data_to_paste.append(list(row))
-#                 data_to_paste.reverse()
-#                 print(data_to_paste)
-#                 for i in data_to_paste:
-#                     data_to_pasteDay.append(i[0])
+            else:
+                for row in ws.iter_rows(min_row=2, values_only=True):
+                    changed_row = list(row)
+                    changed_row[0], changed_row[1] = changed_row[1], changed_row[0]
+                    data_to_paste.append(changed_row)
+                data_to_paste.reverse()
+                print(data_to_paste)
+                for i in data_to_paste:
+                    data_to_pasteDay.append(i[0])
 
-#                 print(data_to_pasteDay)
+                print(data_to_pasteDay)
 
-#                 print(today_tdayTemp)
-#                 print(today_yday)
+                print(today_tdayTemp)
+                print(today_yday)
 
-#                 while today_tdayTemp != today_yday:
-#                     if str(today_tdayTemp) in data_to_pasteDay:
-#                         num = data_to_pasteDay.index(str(today_tdayTemp))
-#                         data_to_paste[num]
+                while today_tdayTemp != today:
 
-#                         last_row = len(sheet.get_all_values())
-#                         print(last_row)
-#                         next_row = last_row + 1  # 다음 행 번호
+                    last_row = len(sheet.get_all_values())
+                    print(last_row)
+                    next_row = last_row + 1  # 다음 행 번호
 
-#                         # 데이터 추가
-#                         range_to_write = f'B{next_row}:Q{next_row}'
-#                         range_to_write2 = f'A{next_row}'
-#                         sheet.update([[today_tdayTemp]], range_to_write2) #한줄
-#                         sheet.update([data_to_paste[num]], range_to_write) #한줄
+                    # 해당 날짜 데이터 있으면
+                    if str(today_tdayTemp) in data_to_pasteDay:
+                        for num, i in enumerate(data_to_pasteDay):
+                            if i == str(today_tdayTemp):
 
-#                     today_tdayTemp += timedelta(days=1)
+                                data_to_paste[num]
 
-#             # targe1 = ws['2']
-#             # targe2 = ws['3']
-#             # data_to_paste_know1 = []
-#             # data_to_paste_know2 = []
-#             # for cell in targe1:
-#             #     data_to_paste_know1.append(cell.value)
-#             # for cell in targe2:
-#             #     data_to_paste_know2.append(cell.value)
-#             # print(data_to_paste_know1)
-#             # print(data_to_paste_know2)
+                                # 데이터 추가
+                                range_to_write = f'A{next_row}:Q{next_row}'
+                                sheet.update([data_to_paste[num]], range_to_write) #한줄
 
-#             last_row = len(sheet.get_all_values())
-#             print(last_row)
-#             next_row = last_row + 1  # 다음 행 번호
+                                next_row += 1
 
-#             # # 데이터 추가
-#             # range_to_write = f'B{next_row}:Q{next_row}'
-#             # sheet.update([data_to_paste_know1], range_to_write) #한줄
-#             # sheet.update([data_to_paste_know1], range_to_write) #한줄
+                    # 해당 날짜 데이터 없으면 더미데이터
+                    else:
+                        metaDataEmpty = [str(today_tdayTemp), '-', 0, 0, 0, 0, 0, 0, 0, 0, '-', 0, 0, 0, 0, str(today_tdayTemp), str(today_tdayTemp)]
+
+                        # 데이터 추가
+                        range_to_write = f'A{next_row}:Q{next_row}'
+                        sheet.update([metaDataEmpty], range_to_write) #한줄
+
+                    today_tdayTemp += timedelta(days=1)
+
+        # 메타
+        def meta(url_meta, know_TF):
+
+            # 크롬 On
+            chromedriver_path = chromedriver_autoinstaller.install()
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+            chrome_options.add_argument("--start-maximized") #최대 크기로 시작
+            chrome_options.add_experimental_option('detach', True)
+
+            user_data = self.chrome_path_folder.text()
+            user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
+            chrome_options.add_argument(f"user-data-dir={user_data}")
+            chrome_options.add_argument("--profile-directory=Profile 1")
             
-#             # K 값 지정
-#             K_value = sheet.acell(f'K{next_row}').value
-#             K_value_previous = sheet.acell(f'K{next_row-1}').value
+            user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+            headers = {'user-agent' : user_agent}
 
-#             if sheet.acell(f'A{next_row}').value is not None and K_value is None: #웹사이트 구매 빈칸일 때
-#                 sheet.update([[K_value_previous]], f'K{next_row}')
+            driver = webdriver.Chrome(
+                service=Service(chromedriver_path),
+                options=chrome_options
+            )
 
-#             # range_to_write = f'B{next_row+1}:Q{next_row+1}'
-#             # sheet.update([data_to_paste_know2], range_to_write) #두줄
+            driver.get(url_meta)
 
-#             time.sleep(2)
-#             K_value = sheet.acell(f'K{next_row+1}').value
-#             if sheet.acell(f'A{next_row+1}').value is not None and K_value is None: #웹사이트 구매 빈칸일 때
-#                 sheet.update([[K_value_previous]], f'K{next_row+1}')
+            # meta_id = 'healer10@kakao.com'
+            # meta_pw = 'fhdifxmfl1305!!'
 
-#         # 메타
-#         def meta(url_meta, know_TF):
+            # '비밀번호를' 텍스트를 포함하는 요소 찾기
+            time.sleep(2)
 
-#             # 크롬 On
-#             chromedriver_path = chromedriver_autoinstaller.install()
-#             chrome_options = webdriver.ChromeOptions()
-#             chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
-#             chrome_options.add_argument("--start-maximized") #최대 크기로 시작
-#             chrome_options.add_experimental_option('detach', True)
+            try:
+                WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "비밀번호를")]')))
+                pw = driver.find_element(By.XPATH, '//*[contains(text(), "비밀번호를")]')
 
-#             user_data = self.chrome_path_folder.text()
-#             user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
-#             chrome_options.add_argument(f"user-data-dir={user_data}")
-#             chrome_options.add_argument("--profile-directory=Profile 1")
+                if pw:
+                    print("pw 만족")
+                    # 이전 형제 요소 찾기
+                    parent_element = pw.find_element(By.XPATH, '..')
+                    previous_sibling = parent_element.find_element(By.XPATH, 'preceding-sibling::*[1]')
+                    print("Previous sibling found:", previous_sibling.text)
+                    print
+                    previous_sibling.click()
+                
+                else:
+                    print("요소를 찾을 수 없습니다.")
+
+                time.sleep(1)
+                driver.get(url_meta)
+
+            except:
+                pass
+            #알림 제거
+            try:
+                body = driver.find_element(By.CSS_SELECTOR, 'body')
+                ActionChains(driver).move_to_element(body).click().perform()
+            except: pass
+
+
+            # 달력 열기
+            WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="PNG_EXPORT"]/div/div[3]/div[1]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/span')))
+            driver.find_element(By.XPATH, '//*[@id="PNG_EXPORT"]/div/div[3]/div[1]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/span').click()
+
+            # 오늘 선택하기
+            WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "최근 7일")]'))).click()
+
+            element = driver.find_element(By.CSS_SELECTOR, "#export_button > div > div > span > div > div.xeuugli.x2lwn1j.x6s0dn4.x78zum5.x1q0g3np.x1iyjqo2.xozqiw3.x19lwn94.x1hc1fzr.x13dflua.x6o7n8i.xxziih7.x12w9bfk.xl56j7k.xh8yej3 > div > div")
             
-#             user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
-#             headers = {'user-agent' : user_agent}
-
-#             driver = webdriver.Chrome(
-#                 service=Service(chromedriver_path),
-#                 options=chrome_options
-#             )
-
-#             driver.get(url_meta)
-
-#             # meta_id = 'healer10@kakao.com'
-#             # meta_pw = 'fhdifxmfl1305!!'
-
-#             # '비밀번호를' 텍스트를 포함하는 요소 찾기
-#             time.sleep(2)
-
-#             try:
-#                 WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "비밀번호를")]')))
-#                 pw = driver.find_element(By.XPATH, '//*[contains(text(), "비밀번호를")]')
-
-#                 if pw:
-#                     print("pw 만족")
-#                     # 이전 형제 요소 찾기
-#                     parent_element = pw.find_element(By.XPATH, '..')
-#                     previous_sibling = parent_element.find_element(By.XPATH, 'preceding-sibling::*[1]')
-#                     print("Previous sibling found:", previous_sibling.text)
-#                     print
-#                     previous_sibling.click()
-                
-#                 else:
-#                     print("요소를 찾을 수 없습니다.")
-
-#                 time.sleep(1)
-#                 driver.get(url_meta)
-
-#             except:
-#                 pass
-#             #알림 제거
-#             try:
-#                 body = driver.find_element(By.CSS_SELECTOR, 'body')
-#                 ActionChains(driver).move_to_element(body).click().perform()
-#             except: pass
-
-
-#             # 달력 열기
-#             WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="PNG_EXPORT"]/div/div[3]/div[1]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/span')))
-#             driver.find_element(By.XPATH, '//*[@id="PNG_EXPORT"]/div/div[3]/div[1]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/span').click()
-
-#             # 오늘 선택하기
-#             WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "오늘")]'))).click()
-
-#             # 달력 열기
-#             WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="PNG_EXPORT"]/div/div[3]/div[1]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/span')))
-#             driver.find_element(By.XPATH, '//*[@id="PNG_EXPORT"]/div/div[3]/div[1]/div[1]/div/div/div/div[1]/div[2]/div[2]/div/div/div/span').click()
-
-#             WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, f'//*[contains(text(), "{Tday_month월}")]')))
-#             mon = driver.find_element(By.XPATH, f'//*[contains(text(), "{Tday_month월}")]')
-
-#             print(Tday_month월)
-#             print(mon.text)
-
-#             time.sleep(1)
-#             if mon.text == Tday_month월:
-#                 parent_element = mon.find_element(By.XPATH, "..")
-#                 next_sibling = parent_element.find_element(By.XPATH, 'following-sibling::*[1]')
-#                 time.sleep(1)
-                
-            
-#                 # 시작날짜선택
-#                 d = next_sibling.find_elements(By.XPATH, ".//div")
-#                 for i in d:
-#                     if i.text == today_Tday일:
-#                         i.click()
-#                         break
-#                 time.sleep(1)
-
-#                 # 종료날짜선택
-#                 for i in d:
-#                     if i.text == today_Yday일:
-#                         i.click()
-#                         break
-#                 time.sleep(1)
-
-#                 updateElements = driver.find_element(By.XPATH, '//*[contains(text(), "취소")]')
-
-#                 # if len(updateElements) > 1:  # 요소가 두 개 이상 있는지 확인
-#                 ancestor = updateElements.find_element(By.XPATH,"../../../../..")
-#                 ancestor_sibling = ancestor.find_element(By.XPATH, 'following-sibling::*[1]')
-#                 print(ancestor_sibling.find_element(By.XPATH, "./*/*/*/*/*").text)
-#                 print(ancestor_sibling)
-#                 ancestor_sibling.click()
-#                 # else:
-#                 #     print("두 번째 요소를 찾을 수 없습니다.")
-                
-
-#             elif mon.text != Tday_month월:
-#                 prevmonth = driver.find_element(By.XPATH, '//*[contains(text(), "이전 달")]')
-#                 prevmonth.find_element(By.XPATH, "..").click()
-#                 time.sleep(0.5)
-
-#                 mon = driver.find_element(By.XPATH, f'//*[contains(text(), "{Tday_month월}")]')
-#                 time.sleep(1)
-
-#                 if mon.text == Tday_month월:
-#                     parent_element = mon.find_element(By.XPATH, "..")
-#                     next_sibling = parent_element.find_element(By.XPATH, 'following-sibling::*[1]')
-                
-            
-#                     # 시작날짜선택
-#                     d = next_sibling.find_elements(By.XPATH, ".//div")
-#                     for i in d:
-#                         if i.text == today_Tday일:
-#                             i.click()
-#                             break
-#                     time.sleep(1)
-
-#                     # 종료날짜선택
-#                     if mon.text == Yday_month월:
-#                         for i in d:
-#                             if i.text == today_Tday일:
-#                                 i.click()
-#                                 break
-#                         time.sleep(1)
-                    
-#                     else:
-#                         mon = driver.find_element(By.XPATH, f'//*[contains(text(), "{Yday_month월}")]')
-
-#                         parent_element = mon.find_element(By.XPATH, "..")
-#                         next_sibling = parent_element.find_element(By.XPATH, 'following-sibling::*[1]')
-                    
-#                         time.sleep(1)
-
-#                         # 텍스트 값 출력
-#                         d = next_sibling.find_elements(By.XPATH, ".//div")
-#                         for i in d:
-#                             if i.text == today_Tday일:
-#                                 i.click()
-#                                 break
-
-#                 updateElements = driver.find_elements(By.XPATH, '//*[contains(text(), "업데이트")]')
-
-#                 if len(updateElements) > 1:  # 요소가 두 개 이상 있는지 확인
-#                     print("요소가 두개입니다.")
-#                     updateElements[2].click()
-#                 else:
-#                     print("두 번째 요소를 찾을 수 없습니다.")
-                
-
-#             else:
-#                 print("요소를 찾을 수 없습니다.")  
 
             
-#             element = driver.find_element(By.CSS_SELECTOR, "#export_button > div > div > span > div > div.xeuugli.x2lwn1j.x6s0dn4.x78zum5.x1q0g3np.x1iyjqo2.xozqiw3.x19lwn94.x1hc1fzr.x13dflua.x6o7n8i.xxziih7.x12w9bfk.xl56j7k.xh8yej3 > div > div")
-#             driver.find_element(By.CSS_SELECTOR, "#export_button > div > div > span > div > div.xeuugli.x2lwn1j.x6s0dn4.x78zum5.x1q0g3np.x1iyjqo2.xozqiw3.x19lwn94.x1hc1fzr.x13dflua.x6o7n8i.xxziih7.x12w9bfk.xl56j7k.xh8yej3 > div > div").click() #내보내기
-#             time.sleep(1.5)
-#             ActionChains(driver).move_to_element_with_offset(element,-579,497).click().perform() #다운로드
+            # 다운로드 확인
+            cnt = 1
+            while cnt < 10:
+                current_file_count1 = count_files(download_folder)
+                element.click() #내보내기
+                time.sleep(1.5)
+                ActionChains(driver).move_to_element_with_offset(element,-579,497).click().perform() #다운로드
+                time.sleep(5)
+                current_file_count2 = count_files(download_folder)
+                if current_file_count1 != current_file_count2:
+                    break
 
-            
-#             while True:
-#                 check_download()
-#                 if check == 0:
-#                         driver.find_element(By.CSS_SELECTOR, "#export_button > div > div > span > div > div.xeuugli.x2lwn1j.x6s0dn4.x78zum5.x1q0g3np.x1iyjqo2.xozqiw3.x19lwn94.x1hc1fzr.x13dflua.x6o7n8i.xxziih7.x12w9bfk.xl56j7k.xh8yej3 > div > div").click() #내보내기
-#                         time.sleep(1)
-#                         ActionChains(driver).move_to_element_with_offset(element,-579,497).click().perform() #다운로드
-#                 else: break
+                cnt += 1
 
                 
-#             time.sleep(3)
+            time.sleep(3)
+
+            driver.close()
         
-#         #메타 하엔
-#         if self.haen_advtMeta.isChecked() == True:
-#             url_meta_haen = 'https://adsmanager.facebook.com/adsmanager/reporting/view?act=774078054299392&business_id=341660836507461&selected_report_id=120202962853720679' #하엔
-#             sheet_url_haen_all = 'https://docs.google.com/spreadsheets/d/1V8b3FRe_8witwHXQceekgm-BAvTQLwwkcyuaW-mIi30/edit#gid=168246212'
-#             sheet_name_haen = '하엔 페이스북 R'
-#             know_TF = 0
+        #메타 하엔
+        if self.haen_advtMeta.isChecked() == True:
+            url_meta_haen = 'https://adsmanager.facebook.com/adsmanager/reporting/view?act=774078054299392&business_id=341660836507461&selected_report_id=120202962853720679' #하엔
+            sheet_url_haen_all = 'https://docs.google.com/spreadsheets/d/1V8b3FRe_8witwHXQceekgm-BAvTQLwwkcyuaW-mIi30/edit#gid=168246212'
+            sheet_name_haen = '하엔 페이스북 R'
+            know_TF = 0
 
-#             meta(url_meta_haen, know_TF)
-#             meta_rawdata(sheet_url_haen_all, sheet_name_haen, know_TF)
+            meta(url_meta_haen, know_TF)
+            meta_rawdata(sheet_url_haen_all, sheet_name_haen, know_TF)
 
-#         #메타 러블로
-#         if self.love_advtMeta.isChecked() == True:
-#             url_meta_lovelo = 'https://adsmanager.facebook.com/adsmanager/reporting/view?act=1913234209031352&business_id=267018165996779&selected_report_id=120200964749160675' #러블로
-#             sheet_url_love_all = 'https://docs.google.com/spreadsheets/d/1NVnVJsCj0Ap_o2xabua9ANUw_1IUREVMJKteY_O1yks/edit#gid=1607702031'
-#             sheet_name_love = '러블로 페이스북 R'
-#             know_TF = 0
+        #메타 러블로
+        if self.love_advtMeta.isChecked() == True:
+            url_meta_lovelo = 'https://adsmanager.facebook.com/adsmanager/reporting/view?act=1913234209031352&business_id=267018165996779&selected_report_id=120200964749160675' #러블로
+            sheet_url_love_all = 'https://docs.google.com/spreadsheets/d/1NVnVJsCj0Ap_o2xabua9ANUw_1IUREVMJKteY_O1yks/edit#gid=1607702031'
+            sheet_name_love = '러블로 페이스북 R'
+            know_TF = 0
 
-#             meta(url_meta_lovelo, know_TF)
-#             meta_rawdata(sheet_url_love_all, sheet_name_love, know_TF)
+            meta(url_meta_lovelo, know_TF)
+            meta_rawdata(sheet_url_love_all, sheet_name_love, know_TF)
 
-#         #메타 노마셀
-#         if self.know_advtMeta.isChecked() == True:
-#             url_meta_knowmycell = 'https://adsmanager.facebook.com/adsmanager/reporting/view?act=238068255778220&business_id=635001998695042&selected_report_id=120200841324100083' #노마셀
-#             sheet_url_know_all = 'https://docs.google.com/spreadsheets/d/12FWmZMuznsxOY_IDbBWeSis-EW1Ds1f9TB6X7K6TFBc/edit#gid=137297262'
-#             sheet_name_know = '노마셀 페이스북 R'
-#             know_TF = 1
+        #메타 노마셀
+        if self.know_advtMeta.isChecked() == True:
+            url_meta_knowmycell = 'https://adsmanager.facebook.com/adsmanager/reporting/view?act=238068255778220&business_id=635001998695042&selected_report_id=120200841324100083' #노마셀
+            sheet_url_know_all = 'https://docs.google.com/spreadsheets/d/12FWmZMuznsxOY_IDbBWeSis-EW1Ds1f9TB6X7K6TFBc/edit#gid=137297262'
+            sheet_name_know = '노마셀 페이스북 R'
+            know_TF = 1
 
-#             meta(url_meta_knowmycell, know_TF)
-#             meta_rawdata(sheet_url_know_all, sheet_name_know, know_TF)
+            meta(url_meta_knowmycell, know_TF)
+            meta_rawdata(sheet_url_know_all, sheet_name_know, know_TF)
 
+        #메타 제니크
+        if self.zq_advtMeta.isChecked() == True:
+            url_meta_zq = 'https://adsmanager.facebook.com/adsmanager/reporting/view?act=7003471889761390&business_id=635001998695042&selected_report_id=120211428882470776' #제니크
+            sheet_url_zq_all = 'https://docs.google.com/spreadsheets/d/1aGDKs5seG0d8CzQ99_pKBNFQCNRdC1-AppwIfi1zSuc/edit?gid=36988624#gid=36988624'
+            sheet_name_zq = '제니크 페이스북 R'
+            know_TF = 1
+
+            meta(url_meta_zq, know_TF)
+            meta_rawdata(sheet_url_zq_all, sheet_name_zq, know_TF)
+
+            
 
 # 방문자수
         def visitors(url, id, pw, sheet_url, sheet_name):
@@ -3036,6 +3062,19 @@ class Rawdata_extractor(QWidget):
 
             visitors(url_cafe24, cafe24_id_knowmycell, cafe24_pw_knowmycell, sheet_knowR_url, sheet_knowD)
 
+        #카페24 제니크
+        if self.zq_visitors.isChecked() == True:
+
+            url_cafe24 = "https://eclogin.cafe24.com/Shop/" 
+
+            cafe24_id_zq = self.login_info("CAFE_ZQ_ID")
+            cafe24_pw_zq = self.login_info("CAFE_ZQ_PW")
+
+            sheet_zqR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=567505346'
+            sheet_zqD = "제니크D"
+
+            visitors(url_cafe24, cafe24_id_zq, cafe24_pw_zq, sheet_zqR_url, sheet_zqD)
+
 # 신규 가입자
         def new_member(url, id, pw, sheet_url, sheet_name):
 
@@ -3256,6 +3295,19 @@ class Rawdata_extractor(QWidget):
             sheet_name = "노마셀신규"
 
             new_member(url_cafe24, cafe24_id_knowmycell, cafe24_pw_knowmycell, sheet_knowR_url, sheet_name)
+
+        #카페24 제니크
+        if self.zq_newMemb.isChecked() == True:
+
+            url_cafe24 = "https://eclogin.cafe24.com/Shop/" 
+
+            cafe24_id_zq = self.login_info("CAFE_ZQ_ID")
+            cafe24_pw_zq = self.login_info("CAFE_ZQ_PW")
+
+            sheet_zqR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=567505346'
+            sheet_name = "제니크신규"
+
+            new_member(url_cafe24, cafe24_id_zq, cafe24_pw_zq, sheet_zqR_url, sheet_name)
                     
 
     def saveText(self):
@@ -3288,6 +3340,7 @@ class Rawdata_extractor(QWidget):
             file.write(f"{self.haen_advtNaver.isChecked()}\n")
             file.write(f"{self.love_advtNaver.isChecked()}\n")
             file.write(f"{self.know_advtNaver.isChecked()}\n")
+            file.write(f"{self.zq_advtNaver.isChecked()}\n")
 
             file.write(f"{self.haen_advtGFA.isChecked()}\n")
             file.write(f"{self.love_advtGFA.isChecked()}\n")
@@ -3304,14 +3357,17 @@ class Rawdata_extractor(QWidget):
             file.write(f"{self.haen_advtMeta.isChecked()}\n")
             file.write(f"{self.love_advtMeta.isChecked()}\n")
             file.write(f"{self.know_advtMeta.isChecked()}\n")
+            file.write(f"{self.zq_advtMeta.isChecked()}\n")
 
             file.write(f"{self.haen_visitors.isChecked()}\n")
             file.write(f"{self.love_visitors.isChecked()}\n")
             file.write(f"{self.know_visitors.isChecked()}\n")
+            file.write(f"{self.zq_visitors.isChecked()}\n")
 
             file.write(f"{self.haen_newMemb.isChecked()}\n")
             file.write(f"{self.love_newMemb.isChecked()}\n")
             file.write(f"{self.know_newMemb.isChecked()}\n")
+            file.write(f"{self.zq_newMemb.isChecked()}\n")
 
     def loadCheckboxState(self):
         try:
@@ -3337,30 +3393,34 @@ class Rawdata_extractor(QWidget):
                 self.haen_advtNaver.setChecked(states[13].strip() == 'True')
                 self.love_advtNaver.setChecked(states[14].strip() == 'True')
                 self.know_advtNaver.setChecked(states[15].strip() == 'True')
+                self.zq_advtNaver.setChecked(states[16].strip() == 'True')
 
-                self.haen_advtGFA.setChecked(states[16].strip() == 'True')
-                self.love_advtGFA.setChecked(states[17].strip() == 'True')
-                self.know_advtGFA.setChecked(states[18].strip() == 'True')
+                self.haen_advtGFA.setChecked(states[17].strip() == 'True')
+                self.love_advtGFA.setChecked(states[18].strip() == 'True')
+                self.know_advtGFA.setChecked(states[19].strip() == 'True')
 
-                self.haen_advtPC.setChecked(states[19].strip() == 'True')
-                self.love_advtPC.setChecked(states[20].strip() == 'True')
-                self.know_advtPC.setChecked(states[21].strip() == 'True')
+                self.haen_advtPC.setChecked(states[20].strip() == 'True')
+                self.love_advtPC.setChecked(states[21].strip() == 'True')
+                self.know_advtPC.setChecked(states[22].strip() == 'True')
 
-                self.haen_advtGgle.setChecked(states[22].strip() == 'True')
-                self.love_advtGgle.setChecked(states[23].strip() == 'True')
-                self.know_advtGgle.setChecked(states[24].strip() == 'True')
+                self.haen_advtGgle.setChecked(states[23].strip() == 'True')
+                self.love_advtGgle.setChecked(states[24].strip() == 'True')
+                self.know_advtGgle.setChecked(states[25].strip() == 'True')
 
-                self.haen_advtMeta.setChecked(states[25].strip() == 'True')
-                self.love_advtMeta.setChecked(states[26].strip() == 'True')
-                self.know_advtMeta.setChecked(states[27].strip() == 'True')
+                self.haen_advtMeta.setChecked(states[26].strip() == 'True')
+                self.love_advtMeta.setChecked(states[27].strip() == 'True')
+                self.know_advtMeta.setChecked(states[28].strip() == 'True')
+                self.zq_advtMeta.setChecked(states[29].strip() == 'True')
 
-                self.haen_visitors.setChecked(states[28].strip() == 'True')
-                self.love_visitors.setChecked(states[29].strip() == 'True')
-                self.know_visitors.setChecked(states[30].strip() == 'True')
+                self.haen_visitors.setChecked(states[30].strip() == 'True')
+                self.love_visitors.setChecked(states[31].strip() == 'True')
+                self.know_visitors.setChecked(states[32].strip() == 'True')
+                self.zq_visitors.setChecked(states[33].strip() == 'True')
 
-                self.haen_newMemb.setChecked(states[31].strip() == 'True')
-                self.love_newMemb.setChecked(states[32].strip() == 'True')
-                self.know_newMemb.setChecked(states[33].strip() == 'True')
+                self.haen_newMemb.setChecked(states[34].strip() == 'True')
+                self.love_newMemb.setChecked(states[35].strip() == 'True')
+                self.know_newMemb.setChecked(states[36].strip() == 'True')
+                self.zq_newMemb.setChecked(states[37].strip() == 'True')
                 # 나머지 체크박스도 동일하게 불러옵니다.
         except FileNotFoundError:
             pass

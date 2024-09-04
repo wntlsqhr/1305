@@ -23,7 +23,7 @@ thsrkfka2!
 COUP_HAEN_ID
 rmsdn0417
 COUP_HAEN_PW
-zmsdn44^^^
+zmsdn44^^
 
 COUP_LOVE_ID
 rmsdn04177
