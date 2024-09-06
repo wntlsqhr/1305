@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QFont, QIcon, QStandardItemModel, QStandardItem, QTextBlock, QTextCursor
+from PyQt5.QtGui import QFont, QIcon, QStandardItemModel, QStandardItem, QTextBlock, QTextCursor, QPalette, QColor
 from PyQt5.QtCore import Qt, QThread, QObject, pyqtSignal, QCoreApplication, QDate
 from selenium.common.exceptions import SessionNotCreatedException
 from openpyxl.utils.exceptions import InvalidFileException
@@ -36,23 +36,107 @@ import sys
 import os
 import re
 
+# 각 앱에 대한 메모장 경로
+CREDENTIALS_FILES = {
+    "노마셀": "knowmycell_credentials.txt",
+    "러브슬라임": "loveslime_credentials.txt"
+}
+
+# 메모장에서 ID, PW를 읽는 함수
+def read_credentials(app_name):
+    file_path = CREDENTIALS_FILES.get(app_name)
+    if not file_path or not os.path.exists(file_path):
+        return "", ""
+    with open(file_path, "r") as file:
+        lines = file.readlines()
+        if len(lines) >= 2:
+            return lines[0].strip(), lines[1].strip()
+    return "", ""
+
+# ID와 PW를 메모장에 저장하는 함수
+def save_credentials(app_name, id_text, pw_text):
+    file_path = CREDENTIALS_FILES.get(app_name)
+    if file_path:
+        with open(file_path, "w") as file:
+            file.write(f"{id_text}\n{pw_text}")
+
+
+# 두 번째 새 창 클래스 (노마셀 또는 러브슬라임 창)
+class NewWindow(QWidget):
+    def __init__(self, app_name):
+        super().__init__()
+        self.setWindowTitle(f"{app_name} ID & PW Edit")
+
+        self.app_name = app_name
+
+        # ID, PW 읽어오기
+        id_text, pw_text = read_credentials(app_name)
+
+        # ID와 PW 입력 필드
+        self.id_line_edit = QLineEdit()
+        self.id_line_edit.setText(id_text)
+        self.pw_line_edit = QLineEdit()
+        self.pw_line_edit.setText(pw_text)
+
+        # 저장 버튼
+        self.save_button = QPushButton("Save")
+        self.save_button.clicked.connect(self.save_credentials)
+
+        # 레이아웃 설정
+        layout = QVBoxLayout()
+        layout.addWidget(QLabel(f"{app_name} ID:"))
+        layout.addWidget(self.id_line_edit)
+        layout.addWidget(QLabel(f"{app_name} PW:"))
+        layout.addWidget(self.pw_line_edit)
+        layout.addWidget(self.save_button)
+
+        self.setLayout(layout)
+
+    def save_credentials(self):
+        # 입력된 ID와 PW 가져오기
+        id_text = self.id_line_edit.text()
+        pw_text = self.pw_line_edit.text()
+
+        # 메모장에 저장
+        save_credentials(self.app_name, id_text, pw_text)
+
+        # 저장 성공 메시지 박스 표시
+        QMessageBox.information(self, "Saved", f"{self.app_name} ID and PW have been saved successfully.")
+
+
 class data_synchronization(QWidget):
 
     def __init__(self):
         super().__init__()
         self.UI초기화()
 
+    
     def UI초기화(self):
 
 
+        # "노마셀"과 "러브슬라임" 버튼 생성
+        self.knowmycell_button = QPushButton("노마셀 계정정보", self)
+        self.knowmycell_button.move(30, 320)
+        self.knowmycell_button.clicked.connect(self.open_nomacell_window)
+        self.knowmycell_button.setStyleSheet("QPushButton { background-color: green;}")
+
+        self.loveslime_button = QPushButton("러브슬라임 계정정보", self)
+        self.loveslime_button.move(30, 350)
+        self.loveslime_button.clicked.connect(self.open_loveslime_window)
+        self.loveslime_button.setStyleSheet("QPushButton { background-color: green;}")
+
+
+# 윈도우창
         self.setWindowTitle("매출 데이터 동기화")
         self.setFixedSize(800, 600)
 
+# 시작일/마감일 lable
         self.startdate = QLabel("시작일",self)
         self.startdate.move(50, 25)
         self.enddate = QLabel("마감일",self)
         self.enddate.move(200, 25)
 
+# 날짜 input
         self.input_startday = QDateEdit(self)
         self.input_startday.setDate(QDate.currentDate())  # 기본값: 오늘 날짜
         self.input_startday.setCalendarPopup(True)  # 캘린더 팝업 사용
@@ -63,32 +147,154 @@ class data_synchronization(QWidget):
         self.input_endday.setCalendarPopup(True)  # 캘린더 팝업 사용
         self.input_endday.setGeometry(200, 50, 100, 25)
 
-        # QPushButton 설정 (차이 계산 버튼)
+# 적용 & 날짜계산(오늘부터 며칠전인지)
         self.calc_button = QPushButton("적용", self)
         self.calc_button.setGeometry(330, 49, 50, 27)
         self.calc_button.clicked.connect(self.calculate_difference)
         
+# lable
         self.txt_xdays_before = QLabel("n일 전 부터 n일 전 까지", self)
         self.txt_xdays_before.setGeometry(50, 100, 500, 25)
+# 브랜드 comboBox
 
+        self.brand_comboBox = QComboBox(self)
+        self.brand_comboBox.move(30, 270)
+        self.brand_comboBox.addItems(["러브슬라임", "노마셀"])
+        self.brand_comboBox.setStyleSheet("QComboBox { background-color: white; }")
+
+# run 버튼
         self.ss_down = QPushButton("스스다운", self)
-        self.ss_down.move(50, 300)
+        self.ss_down.move(50, 400)
         self.ss_down.clicked.connect(self.run_ss_down)
 
         self.ss_write = QPushButton("스스입력", self)
-        self.ss_write.move(150, 300)
+        self.ss_write.move(150, 400)
         self.ss_write.clicked.connect(self.run_ss_write)
 
         self.coup_down = QPushButton("쿠팡다운", self)
-        self.coup_down.move(50, 350)
+        self.coup_down.move(50, 450)
         self.coup_down.clicked.connect(self.run_coup_down)
 
         self.coup_write = QPushButton("쿠팡입력", self)
-        self.coup_write.move(150, 350)
+        self.coup_write.move(150, 450)
         self.coup_write.clicked.connect(self.run_coup_write)
 
+# 다운로드
+# 다운로드폴더 버튼
+        self.slt_folder = QPushButton('다운로드폴더',self)
+        self.slt_folder.setGeometry(330,511,100,29)
+        self.slt_folder.clicked.connect(self.folderopen)
+        self.slt_folder.setStyleSheet(
+            """
+            QPushButton {
+                background-color: white;
+                border-radius: 1.5px;
+                border-width: 1px;
+                border-color: black;
+                border-style: solid;
+            }
+            QPushButton:hover {
+                background-color: rgb(120,120,120);
+            }
+            QPushButton:pressed {
+                background-color: rgb(50, 50, 50);
+            }
+            """
+        )
+
+        # 다운로드폴더 설정저장 버튼
+        self.saveButton = QPushButton('설정저장', self)
+        self.saveButton.setGeometry(440,511,100,29)
+        self.saveButton.clicked.connect(self.saveText)
+        self.saveButton.setStyleSheet(
+            """
+            QPushButton {
+                background-color: white;
+                border-radius: 1.5px;
+                border-width: 1px;
+                border-color: black;
+                border-style: solid;
+            }
+            QPushButton:hover {
+                background-color: rgb(120,120,120);
+            }
+            QPushButton:pressed {
+                background-color: rgb(50, 50, 50);
+            }
+            """
+        )
+
+         # 다운로드폴더 경로
+        self.path_folder = QLineEdit(self)
+        self.path_folder.setGeometry(80,511,240,27)
+        self.path_folder.setStyleSheet(
+                        "background-color: white;"
+                        "border-radius: 1.5px;"
+                        "border-width: 1px;"
+                        "border-color: black;"
+                        "border-style: solid;")  # 테두리 스타일 추가
+        self.path_folder.setReadOnly(True)
+
+        self.loadText()
+
+# 함수 지정
         self.diff1 = None  # diff1 값을 저장할 인스턴스 변수
         self.diff2 = None  # diff2 값을 저장할 인스턴스 변수
+
+        global download_folder
+        download_folder = self.path_folder.text()
+
+    
+    def loveslime_credential(self):
+        try:
+            with open('loveslime_credentials.txt', 'r', encoding='utf-8') as f:
+                lines = f.readlines()  # 파일의 모든 줄을 읽어 리스트로 저장
+
+            if len(lines) >= 2:  # 첫 번째 줄과 두 번째 줄이 있는지 확인
+                id_value = lines[0].strip()  # 첫 번째 줄 (ID)
+                pw_value = lines[1].strip()  # 두 번째 줄 (PW)
+                return id_value, pw_value  # ID와 PW 반환
+            else:
+                print("File does not contain enough lines for ID and PW.")
+                return None, None  # ID와 PW를 찾을 수 없는 경우
+        except FileNotFoundError:
+            print("Cannot find login information.")
+            return None, None
+        
+    def knowmycell_credential(self):
+        try:
+            with open('knowmycell_credentials.txt', 'r', encoding='utf-8') as f:
+                lines = f.readlines()  # 파일의 모든 줄을 읽어 리스트로 저장
+
+            if len(lines) >= 2:  # 첫 번째 줄과 두 번째 줄이 있는지 확인
+                id_value = lines[0].strip()  # 첫 번째 줄 (ID)
+                pw_value = lines[1].strip()  # 두 번째 줄 (PW)
+                return id_value, pw_value  # ID와 PW 반환
+            else:
+                print("File does not contain enough lines for ID and PW.")
+                return None, None  # ID와 PW를 찾을 수 없는 경우
+        except FileNotFoundError:
+            print("Cannot find login information.")
+            return None, None
+
+    def open_nomacell_window(self):
+        self.nomacell_window = NewWindow("노마셀")
+        self.nomacell_window.show()
+
+    def open_loveslime_window(self):
+        self.loveslime_window = NewWindow("러브슬라임")
+        self.loveslime_window.show()
+
+    def save_credentials(self):
+        # 입력된 ID와 PW 가져오기
+        id_text = self.id_line_edit.text()
+        pw_text = self.pw_line_edit.text()
+
+        # 메모장에 저장
+        save_credentials(self.app_name, id_text, pw_text)
+
+        # 저장 성공 메시지 박스 표시
+        QMessageBox.information(self, "Saved", f"{self.app_name} ID and PW have been saved successfully.")
 
     def calculate_difference(self):
 
@@ -105,6 +311,8 @@ class data_synchronization(QWidget):
         self.txt_xdays_before.setText(f"{self.diff1}일 전 부터 {self.diff2}일 전 까지")
 
     def run_ss_down(self):
+
+        print(self.brand_comboBox.currentText())
 
         # 날짜 구하기
         today = date.today()
@@ -147,7 +355,7 @@ class data_synchronization(QWidget):
         edge_options.add_argument("no-sandbox")
 
         # 사용자의 프로필 경로 설정
-        profile_path = 'C:\\Users\\A\\AppData\\Local\\Microsoft\\Edge\\User Data1'
+        profile_path = 'C:\\Users\\wntls\\AppData\\Local\\Microsoft\\Edge\\User Data1'
         edge_options.add_argument(f"user-data-dir={profile_path}")
         edge_options.add_argument("--profile-directory=Default")
 
@@ -155,7 +363,6 @@ class data_synchronization(QWidget):
         edge_service = Service(EdgeChromiumDriverManager().install())
         edge_driver = webdriver.Edge(service=edge_service, options=edge_options)
 
-        download_folder = "C:\\Users\\A\\Downloads"
 
         def count_files(download_folder):
                         """ 폴더 내 파일의 개수를 반환합니다. """
@@ -205,7 +412,15 @@ class data_synchronization(QWidget):
         WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#include_nav > div > div > div:nth-child(1) > ul > li:nth-child(4) > a"))).click()
         WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#include_nav > div > div > div:nth-child(1) > ul > li.on > div > ul > li:nth-child(1) > a"))).click()
 
-        input()
+
+        print(edge_driver.find_element(By.CSS_SELECTOR, "#include_header > div > div.header_tit > div > div:nth-child(2) > div > div > div > div > a > h2 > span > p").text)
+
+        if edge_driver.find_element(By.CSS_SELECTOR, "#include_header > div > div.header_tit > div > div:nth-child(2) > div > div > div > div > a > h2 > span > p").text == self.brand_comboBox.currentText():
+             pass
+        
+        else:
+            edge_driver.find_element(By.XPATH, f'//*[contains(text(), "{self.brand_comboBox.currentText()}")]').click()
+
 
         while startday != endday:
 
@@ -284,6 +499,8 @@ class data_synchronization(QWidget):
             check_download()
 
             startday += datetime.timedelta(days=1)
+
+        edge_driver.close()
 
     def run_ss_write(self):
         target_days = self.diff1
@@ -419,6 +636,14 @@ class data_synchronization(QWidget):
     def run_coup_down(self):
         download_folder = "C:\\Users\\A\\Downloads"
 
+        if self.brand_comboBox.currentText() == "노마셀":
+            id, pw = self.knowmycell_credential()
+            print(id,"\n",pw,"\n")
+
+        elif self.brand_comboBox.currentText() == "러브슬라임":
+            id, pw = self.loveslime_credential()
+            print(id,"\n",pw,"\n")
+
 
         def count_files(folder):
             """ 폴더 내 파일의 개수를 반환합니다. """
@@ -500,12 +725,12 @@ class data_synchronization(QWidget):
         time.sleep(0.7)
         input_field.send_keys(Keys.CONTROL + "a")
         input_field.send_keys(Keys.BACKSPACE)
-        driver.find_element(By.CSS_SELECTOR, "#username").send_keys("knowmycell")
+        driver.find_element(By.CSS_SELECTOR, "#username").send_keys(id)
         input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#password")))
         input_field.click()
         input_field.send_keys(Keys.CONTROL + "a")
         input_field.send_keys(Keys.BACKSPACE)
-        driver.find_element(By.CSS_SELECTOR, "#password").send_keys("thsrkfka2!")
+        driver.find_element(By.CSS_SELECTOR, "#password").send_keys(pw)
         driver.find_element(By.CSS_SELECTOR,'#kc-login').click()
 
 
@@ -564,6 +789,8 @@ class data_synchronization(QWidget):
         driver.close()
 
     def run_coup_write(self):
+
+
         target_days = self.diff1
         target_num = self.diff1-self.diff2+1
         input_num = 2
@@ -650,7 +877,7 @@ class data_synchronization(QWidget):
 
             df_uploaded_new = pd.read_excel(xlsx_file)
             # '러브슬라임'이라는 단어가 포함된 모든 행을 '옵션명' 열을 기준으로 필터링합니다.
-            filtered_rows_with_loveslime = df_uploaded_new[df_uploaded_new['옵션명'].astype(str).str.contains("노마셀")]
+            filtered_rows_with_loveslime = df_uploaded_new[df_uploaded_new['옵션명'].astype(str).str.contains(self.brand_comboBox.currentText())]
 
             # 필터링된 행들의 데이터를 리스트로 변환합니다.
             rows_list_with_loveslime = filtered_rows_with_loveslime.values.tolist()
@@ -709,6 +936,27 @@ class data_synchronization(QWidget):
 
             target_days -= 1
             target_num -= 1
+
+    def folderopen(self):
+        fname = QFileDialog.getExistingDirectory(self,'폴더선택','')
+        self.path_folder.setText(fname)
+
+    def loadText(self):
+            try:
+                with open('saved_text.txt', 'r') as f:
+                    saved_text = f.read()
+                    texts = saved_text.split("\n")
+
+                    self.path_folder.setText(texts[0])
+
+            except FileNotFoundError:
+                pass
+
+    def saveText(self):
+        text = self.path_folder.text()
+        with open('saved_text.txt', 'w') as file:
+            file.write(text)
+        QMessageBox.information(self,'알림','저장되었습니다.')
 
     def my_exception_hook(exctype, value, traceback):
         # Print the error and traceback
