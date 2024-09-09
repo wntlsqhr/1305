@@ -39,7 +39,8 @@ import re
 # 각 앱에 대한 메모장 경로
 CREDENTIALS_FILES = {
     "노마셀": "knowmycell_credentials.txt",
-    "러브슬라임": "loveslime_credentials.txt"
+    "러브슬라임": "loveslime_credentials.txt",
+    "하엔": "haen_credentials.txt"
 }
 
 # 메모장에서 ID, PW를 읽는 함수
@@ -125,6 +126,11 @@ class data_synchronization(QWidget):
         self.loveslime_button.clicked.connect(self.open_loveslime_window)
         self.loveslime_button.setStyleSheet("QPushButton { background-color: green;}")
 
+        self.haen_button = QPushButton("하엔 계정정보", self)
+        self.haen_button.move(30, 380)
+        self.haen_button.clicked.connect(self.open_haen_window)
+        self.haen_button.setStyleSheet("QPushButton { background-color: green;}")
+
 
 # 윈도우창
         self.setWindowTitle("매출 데이터 동기화")
@@ -159,7 +165,7 @@ class data_synchronization(QWidget):
 
         self.brand_comboBox = QComboBox(self)
         self.brand_comboBox.move(30, 270)
-        self.brand_comboBox.addItems(["러브슬라임", "노마셀"])
+        self.brand_comboBox.addItems(["러브슬라임", "노마셀", "하엔"])
         self.brand_comboBox.setStyleSheet("QComboBox { background-color: white; }")
 
 # run 버튼
@@ -276,6 +282,22 @@ class data_synchronization(QWidget):
         except FileNotFoundError:
             print("Cannot find login information.")
             return None, None
+        
+    def haen_credential(self):
+        try:
+            with open('haen_credentials.txt', 'r', encoding='utf-8') as f:
+                lines = f.readlines()  # 파일의 모든 줄을 읽어 리스트로 저장
+
+            if len(lines) >= 2:  # 첫 번째 줄과 두 번째 줄이 있는지 확인
+                id_value = lines[0].strip()  # 첫 번째 줄 (ID)
+                pw_value = lines[1].strip()  # 두 번째 줄 (PW)
+                return id_value, pw_value  # ID와 PW 반환
+            else:
+                print("File does not contain enough lines for ID and PW.")
+                return None, None  # ID와 PW를 찾을 수 없는 경우
+        except FileNotFoundError:
+            print("Cannot find login information.")
+            return None, None
 
     def open_nomacell_window(self):
         self.nomacell_window = NewWindow("노마셀")
@@ -284,6 +306,10 @@ class data_synchronization(QWidget):
     def open_loveslime_window(self):
         self.loveslime_window = NewWindow("러브슬라임")
         self.loveslime_window.show()
+
+    def open_haen_window(self):
+        self.haen_window = NewWindow("하엔")
+        self.haen_window.show()
 
     def save_credentials(self):
         # 입력된 ID와 PW 가져오기
@@ -298,6 +324,8 @@ class data_synchronization(QWidget):
 
     def calculate_difference(self):
 
+        print(self.input_startday.text())
+
         today = QDate.currentDate()
 
         # 두 날짜 가져오기
@@ -311,232 +339,76 @@ class data_synchronization(QWidget):
         self.txt_xdays_before.setText(f"{self.diff1}일 전 부터 {self.diff2}일 전 까지")
 
     def run_ss_down(self):
-
+        
         print(self.brand_comboBox.currentText())
 
-        # 날짜 구하기
-        today = date.today()
-        # 하루를 나타내는 timedelta 객체 생성
-        # 어제 날짜를 구함
-
-        today_date = today.strftime("%d")
-        today_Ym = today.strftime("%Y. %m.")
-
-        dayx = datetime.timedelta(days=self.diff1)
-        dayy = datetime.timedelta(days=self.diff2-1)
-        day1 = datetime.timedelta(days=1)
-
-        # 오늘 날짜 구하기
-        today_yday = today-day1
-        startday = today-dayx
-        endday = today-dayy
-        tday_Ym = startday.strftime("%Y. %m.")
-        tday_d = startday.strftime("%d")
-
-        # while startday != endday:
-        #         # 날짜 구하기
-        #         today = date.today()
-        #         # 하루를 나타내는 timedelta 객체 생성
-        #         # 어제 날짜를 구함
-
-        #         today_date = today.strftime("%d")
-        #         today_Ym = today.strftime("%Y. %m.")
-
-        #         dayx = datetime.timedelta(days)
-
-        #         # 오늘 날짜 구하기
-        #         startday += datetime.timedelta(days=1)
-        #         print(startday)
-
-        # EdgeOptions 객체 생성
-        edge_options = webdriver.EdgeOptions()
-        edge_options.use_chromium = True
-        edge_options.add_argument("disable-gpu")
-        edge_options.add_argument("no-sandbox")
-
-        # 사용자의 프로필 경로 설정
-        profile_path = 'C:\\Users\\wntls\\AppData\\Local\\Microsoft\\Edge\\User Data1'
-        edge_options.add_argument(f"user-data-dir={profile_path}")
-        edge_options.add_argument("--profile-directory=Default")
-
-        # Edge 드라이버 서비스 시작
-        edge_service = Service(EdgeChromiumDriverManager().install())
-        edge_driver = webdriver.Edge(service=edge_service, options=edge_options)
-
-
-        def count_files(download_folder):
-                        """ 폴더 내 파일의 개수를 반환합니다. """
-                        return len([name for name in os.listdir(download_folder) if os.path.isfile(os.path.join(download_folder, name))])
-
-        def get_latest_file(download_folder):
-                        """ 폴더 내에서 가장 최신의 파일을 반환합니다. """
-                        files = [os.path.join(download_folder, f) for f in os.listdir(download_folder) if os.path.isfile(os.path.join(download_folder, f))]
-                        latest_file = max(files, key=os.path.getctime)
-                        return latest_file
-
-        def check_download():
-            # 다운로드 전의 파일 개수 확인
-            initial_file_count = count_files(download_folder)
-
-            # 다운로드 시작 ...
-
-            # 새 파일이 다운로드될 때까지 기다림
-            global check
-            check = 0
-            i = 0
-
-            while i < 20:
-                current_file_count = count_files(download_folder)
-                if current_file_count > initial_file_count:
-                    print("A new file has been downloaded.")
-                    latest_file = get_latest_file(download_folder)
-                    print(f"Downloaded file: {latest_file}")
-                    # 여기서 필요한 작업을 수행하세요, 예를 들면 파일 열기 등
-                    check = 1
-                    break
-                else:
-                    print("Still no new file")
-                time.sleep(1)  # 폴더 상태를 1초마다 체크
-                i += 1
-
-                get_latest_file(download_folder)
-            return check
-
-        edge_driver.get("https://bizadvisor.naver.com/shopping/product")
-
-        # 로그인
-        WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#wrap > div > div > div.login_box > ul > li:nth-child(1) > a"))).click()
-        WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#root > div > div.Layout_wrap__3uDBh > div > div > div.Login_simple_box__2bfAS > button"))).click()
-
-        # 상품별 이동
-        WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#include_nav > div > div > div:nth-child(1) > ul > li:nth-child(4) > a"))).click()
-        WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#include_nav > div > div > div:nth-child(1) > ul > li.on > div > ul > li:nth-child(1) > a"))).click()
-
-
-        print(edge_driver.find_element(By.CSS_SELECTOR, "#include_header > div > div.header_tit > div > div:nth-child(2) > div > div > div > div > a > h2 > span > p").text)
-
-        if edge_driver.find_element(By.CSS_SELECTOR, "#include_header > div > div.header_tit > div > div:nth-child(2) > div > div > div > div > a > h2 > span > p").text == self.brand_comboBox.currentText():
-             pass
+        if self.brand_comboBox.currentText() == "하엔":
+            pass
         
         else:
-            edge_driver.find_element(By.XPATH, f'//*[contains(text(), "{self.brand_comboBox.currentText()}")]').click()
 
+            # 날짜 구하기
+            today = date.today()
+            # 하루를 나타내는 timedelta 객체 생성
+            # 어제 날짜를 구함
 
-        while startday != endday:
+            today_date = today.strftime("%d")
+            today_Ym = today.strftime("%Y. %m.")
 
-            # 날짜 클릭(달력오픈)
-            WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.date_select > a.btn.select_data'))).click()
+            dayx = datetime.timedelta(days=self.diff1)
+            dayy = datetime.timedelta(days=self.diff2-1)
+            day1 = datetime.timedelta(days=1)
 
+            # 오늘 날짜 구하기
+            today_yday = today-day1
+            startday = today-dayx
+            endday = today-dayy
             tday_Ym = startday.strftime("%Y. %m.")
-            tday_d = str(int(startday.strftime("%d")))
-            print(startday)
-            trick = (startday-day1).strftime("%Y. %m.")
+            tday_d = startday.strftime("%d")
 
-            while True:
-                DPmonth = edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_area > div.pick_calendar_layout > div.DayPicker.DayPicker > div > div.DayPicker-Month.rdp-caption_start")
+            # while startday != endday:
+            #         # 날짜 구하기
+            #         today = date.today()
+            #         # 하루를 나타내는 timedelta 객체 생성
+            #         # 어제 날짜를 구함
 
-                if trick == DPmonth.text[:9]:
+            #         today_date = today.strftime("%d")
+            #         today_Ym = today.strftime("%Y. %m.")
 
-                    if tday_Ym == DPmonth.text[:9]:
+            #         dayx = datetime.timedelta(days)
 
-                        days = edge_driver.find_elements(By.XPATH, f"//*[@id='wrap']/div[1]/section/div/div[2]/div[1]/div/ul/li[2]/div/div/div[2]/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody//td[not(contains(@class, 'DayPicker-Day--outside'))]")
-                        for day in days:
-                            if day.text == tday_d:
-                                print("target: ", day.text)
-                                day.click()
-                                time.sleep(0.1)
-                                day.click()
-                                break
+            #         # 오늘 날짜 구하기
+            #         startday += datetime.timedelta(days=1)
+            #         print(startday)
 
-                        # 적용
-                        edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_info_area > div.btn_area > a:nth-child(1)").click()
-                        break
+            # EdgeOptions 객체 생성
+            edge_options = webdriver.EdgeOptions()
+            edge_options.use_chromium = True
+            edge_options.add_argument("disable-gpu")
+            edge_options.add_argument("no-sandbox")
 
-                    WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_area > div.pick_calendar_layout > div.DayPicker-NavBar > span.DayPicker-NavButton.DayPicker-NavButton--next'))).click()
+            # 사용자의 프로필 경로 설정
+            profile_path = 'C:\\Users\\A\\AppData\\Local\\Microsoft\\Edge\\User Data1'
+            edge_options.add_argument(f"user-data-dir={profile_path}")
+            edge_options.add_argument("--profile-directory=Default")
 
-                    DPmonth = edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_area > div.pick_calendar_layout > div.DayPicker.DayPicker > div > div.DayPicker-Month.rdp-caption_start")
-
-                    if tday_Ym == DPmonth.text[:9]:
-
-                        days = edge_driver.find_elements(By.XPATH, f"//*[@id='wrap']/div[1]/section/div/div[2]/div[1]/div/ul/li[2]/div/div/div[2]/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody//td[not(contains(@class, 'DayPicker-Day--outside'))]")
-                        for day in days:
-                            if day.text == tday_d:
-                                print("target: ", day.text)
-                                day.click()
-                                time.sleep(0.1)
-                                day.click()
-                                break
-
-                        # 적용
-                        edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_info_area > div.btn_area > a:nth-child(1)").click()
-                        break
-
-                    
-
-                else:
-                    # 월 이동 버튼
-                    WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_area > div.pick_calendar_layout > div.DayPicker-NavBar > span.DayPicker-NavButton.DayPicker-NavButton--prev'))).click()
+            # Edge 드라이버 서비스 시작
+            edge_service = Service(EdgeChromiumDriverManager().install())
+            edge_driver = webdriver.Edge(service=edge_service, options=edge_options)
 
 
-                if tday_Ym == DPmonth.text[:9]:
+            def count_files(download_folder):
+                            """ 폴더 내 파일의 개수를 반환합니다. """
+                            return len([name for name in os.listdir(download_folder) if os.path.isfile(os.path.join(download_folder, name))])
 
-                        days = edge_driver.find_elements(By.XPATH, f"//*[@id='wrap']/div[1]/section/div/div[2]/div[1]/div/ul/li[2]/div/div/div[2]/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody//td[not(contains(@class, 'DayPicker-Day--outside'))]")
-                        for day in days:
-                            if day.text == tday_d:
-                                print("target: ", day.text)
-                                day.click()
-                                time.sleep(0.1)
-                                day.click()
-                                break
+            def get_latest_file(download_folder):
+                            """ 폴더 내에서 가장 최신의 파일을 반환합니다. """
+                            files = [os.path.join(download_folder, f) for f in os.listdir(download_folder) if os.path.isfile(os.path.join(download_folder, f))]
+                            latest_file = max(files, key=os.path.getctime)
+                            return latest_file
 
-                        # 적용
-                        edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_info_area > div.btn_area > a:nth-child(1)").click()
-                        break
-
-            # 다운로드 버튼
-            WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(1) > span > a'))).click()
-
-            check_download()
-
-            startday += datetime.timedelta(days=1)
-
-        edge_driver.close()
-
-    def run_ss_write(self):
-        target_days = self.diff1
-        target_num = self.diff1-self.diff2+1
-        input_num = 2
-
-
-        today = date.today()
-        today_date = today.strftime("%d")
-        today_month = str(int(today.strftime("%m")))
-
-        dayx = datetime.timedelta(days=target_days)
-        day1 = datetime.timedelta(days=1)
-
-        today_yday = today-day1
-        today_tday = today-dayx
-        print(today_tday)
-
-        weekday_num = today.weekday()  # 요일 번호 (월요일이 0, 일요일이 6)
-        weekday_numy = today_yday.weekday()  # 요일 번호 (월요일이 0, 일요일이 6)
-        weekday_numt = today_tday.weekday()  # 요일 번호 (월요일이 0, 일요일이 6)
-
-        download_folder = "C:\\Users\\A\\Downloads"
-
-        def count_files(folder):
-            """ 폴더 내 파일의 개수를 반환합니다. """
-            return len([name for name in os.listdir(folder) if os.path.isfile(os.path.join(folder, name))])
-
-        def get_latest_file(folder):
-            """ 폴더 내에서 가장 최신의 파일을 반환합니다. """
-            files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
-            latest_file = max(files, key=os.path.getctime)
-            return latest_file
-
-        def check_download():
-            # 다운로드 전의 파일 개수 확인
+            def check_download():
+                # 다운로드 전의 파일 개수 확인
                 initial_file_count = count_files(download_folder)
 
                 # 다운로드 시작 ...
@@ -559,79 +431,245 @@ class data_synchronization(QWidget):
                         print("Still no new file")
                     time.sleep(1)  # 폴더 상태를 1초마다 체크
                     i += 1
+
+                    get_latest_file(download_folder)
                 return check
 
-        def get_nth_latest_file(folder, n):
-                        """폴더 내에서 n번째로 최신 파일을 반환합니다. n이 1이면 가장 최신, 2면 두 번째로 최신 파일을 반환합니다."""
-                        # 폴더 내의 파일들의 전체 경로와 함께 리스트를 생성합니다.
-                        files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
-                        
-                        # 파일이 없다면 None을 반환
-                        if not files:
-                            return None
-                        
-                        # 파일들을 생성 시간 기준으로 정렬합니다.
-                        files.sort(key=os.path.getctime, reverse=True)
-                        
-                        # 요청한 순위의 파일을 반환합니다. n이 파일 수보다 많거나 0 이하인 경우 None을 반환합니다.
-                        if 1 <= n <= len(files):
-                            nth_latest_file = files[n-1]  # n번째 파일 선택
-                            print(nth_latest_file)
-                            return nth_latest_file
-                        else:
-                            return None
+            edge_driver.get("https://bizadvisor.naver.com/shopping/product")
 
-        def check_data_in_second_row(file_path):
-            wb = openpyxl.load_workbook(file_path)
-            sheet = wb.active
-            second_row = list(sheet.iter_rows(min_row=2, max_row=2, values_only=True))
-            if second_row and any(cell is not None for cell in second_row[0]):
-                return True
-            return False
+            # 로그인
+            WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#wrap > div > div > div.login_box > ul > li:nth-child(1) > a"))).click()
+            WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#root > div > div.Layout_wrap__3uDBh > div > div > div.Login_simple_box__2bfAS > button"))).click()
 
-        row_index = 1
-        while target_num > 0:
+            # 상품별 이동
+            WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#include_nav > div > div > div:nth-child(1) > ul > li:nth-child(4) > a"))).click()
+            WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#include_nav > div > div > div:nth-child(1) > ul > li.on > div > ul > li:nth-child(1) > a"))).click()
 
-            i = get_nth_latest_file(download_folder, target_num)
 
-            wb = openpyxl.load_workbook(i)
-            sheet = wb.active  # 활성 시트 선택
+            print(edge_driver.find_element(By.CSS_SELECTOR, "#include_header > div > div.header_tit > div > div:nth-child(2) > div > div > div > div > a > h2 > span > p").text)
 
-            # 새 워크북 생성
-            new_wb = openpyxl.load_workbook('new_file.xlsx')
-            new_sheet = new_wb.active
-
-            
-            if check_data_in_second_row(i):
+            if edge_driver.find_element(By.CSS_SELECTOR, "#include_header > div > div.header_tit > div > div:nth-child(2) > div > div > div > div > a > h2 > span > p").text == self.brand_comboBox.currentText():
                 pass
+            
             else:
-                new_sheet.cell(row=row_index, column=1, value=today_tday.strftime("%Y-%m-%d"))
-                row_index += 1  # 새 시트에서의 행 인덱스 증가
+                edge_driver.find_element(By.XPATH, f'//*[contains(text(), "{self.brand_comboBox.currentText()}")]').click()
+
+
+            while startday != endday:
+
+                # 날짜 클릭(달력오픈)
+                WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.date_select > a.btn.select_data'))).click()
+
+                tday_Ym = startday.strftime("%Y. %m.")
+                tday_d = str(int(startday.strftime("%d")))
+                print(startday)
+                trick = (startday-day1).strftime("%Y. %m.")
+
+                while True:
+                    DPmonth = edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_area > div.pick_calendar_layout > div.DayPicker.DayPicker > div > div.DayPicker-Month.rdp-caption_start")
+
+                    if trick == DPmonth.text[:9]:
+
+                        if tday_Ym == DPmonth.text[:9]:
+
+                            days = edge_driver.find_elements(By.XPATH, f"//*[@id='wrap']/div[1]/section/div/div[2]/div[1]/div/ul/li[2]/div/div/div[2]/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody//td[not(contains(@class, 'DayPicker-Day--outside'))]")
+                            for day in days:
+                                if day.text == tday_d:
+                                    print("target: ", day.text)
+                                    day.click()
+                                    time.sleep(0.1)
+                                    day.click()
+                                    break
+
+                            # 적용
+                            edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_info_area > div.btn_area > a:nth-child(1)").click()
+                            break
+
+                        WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_area > div.pick_calendar_layout > div.DayPicker-NavBar > span.DayPicker-NavButton.DayPicker-NavButton--next'))).click()
+
+                        DPmonth = edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_area > div.pick_calendar_layout > div.DayPicker.DayPicker > div > div.DayPicker-Month.rdp-caption_start")
+
+                        if tday_Ym == DPmonth.text[:9]:
+
+                            days = edge_driver.find_elements(By.XPATH, f"//*[@id='wrap']/div[1]/section/div/div[2]/div[1]/div/ul/li[2]/div/div/div[2]/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody//td[not(contains(@class, 'DayPicker-Day--outside'))]")
+                            for day in days:
+                                if day.text == tday_d:
+                                    print("target: ", day.text)
+                                    day.click()
+                                    time.sleep(0.1)
+                                    day.click()
+                                    break
+
+                            # 적용
+                            edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_info_area > div.btn_area > a:nth-child(1)").click()
+                            break
+
+                        
+
+                    else:
+                        # 월 이동 버튼
+                        WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_area > div.pick_calendar_layout > div.DayPicker-NavBar > span.DayPicker-NavButton.DayPicker-NavButton--prev'))).click()
+
+
+                    if tday_Ym == DPmonth.text[:9]:
+
+                            days = edge_driver.find_elements(By.XPATH, f"//*[@id='wrap']/div[1]/section/div/div[2]/div[1]/div/ul/li[2]/div/div/div[2]/div/div[1]/div[2]/div[2]/div/div[1]/table/tbody//td[not(contains(@class, 'DayPicker-Day--outside'))]")
+                            for day in days:
+                                if day.text == tday_d:
+                                    print("target: ", day.text)
+                                    day.click()
+                                    time.sleep(0.1)
+                                    day.click()
+                                    break
+
+                            # 적용
+                            edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_info_area > div.btn_area > a:nth-child(1)").click()
+                            break
+
+                # 다운로드 버튼
+                WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(1) > span > a'))).click()
+
+                check_download()
+
+                startday += datetime.timedelta(days=1)
+
+            edge_driver.close()
+
+    def run_ss_write(self):
+
+        if self.brand_comboBox.currentText() == "하엔":
+            pass
+        
+        else:
+            target_days = self.diff1
+            target_num = self.diff1-self.diff2+1
+            input_num = 2
+
+
+            today = date.today()
+            today_date = today.strftime("%d")
+            today_month = str(int(today.strftime("%m")))
+
+            dayx = datetime.timedelta(days=target_days)
+            day1 = datetime.timedelta(days=1)
+
+            today_yday = today-day1
+            today_tday = today-dayx
+            print(today_tday)
+
+            weekday_num = today.weekday()  # 요일 번호 (월요일이 0, 일요일이 6)
+            weekday_numy = today_yday.weekday()  # 요일 번호 (월요일이 0, 일요일이 6)
+            weekday_numt = today_tday.weekday()  # 요일 번호 (월요일이 0, 일요일이 6)
+
+            download_folder = "C:\\Users\\A\\Downloads"
+
+            def count_files(folder):
+                """ 폴더 내 파일의 개수를 반환합니다. """
+                return len([name for name in os.listdir(folder) if os.path.isfile(os.path.join(folder, name))])
+
+            def get_latest_file(folder):
+                """ 폴더 내에서 가장 최신의 파일을 반환합니다. """
+                files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+                latest_file = max(files, key=os.path.getctime)
+                return latest_file
+
+            def check_download():
+                # 다운로드 전의 파일 개수 확인
+                    initial_file_count = count_files(download_folder)
+
+                    # 다운로드 시작 ...
+
+                    # 새 파일이 다운로드될 때까지 기다림
+                    global check
+                    check = 0
+                    i = 0
+
+                    while i < 20:
+                        current_file_count = count_files(download_folder)
+                        if current_file_count > initial_file_count:
+                            print("A new file has been downloaded.")
+                            latest_file = get_latest_file(download_folder)
+                            print(f"Downloaded file: {latest_file}")
+                            # 여기서 필요한 작업을 수행하세요, 예를 들면 파일 열기 등
+                            check = 1
+                            break
+                        else:
+                            print("Still no new file")
+                        time.sleep(1)  # 폴더 상태를 1초마다 체크
+                        i += 1
+                    return check
+
+            def get_nth_latest_file(folder, n):
+                            """폴더 내에서 n번째로 최신 파일을 반환합니다. n이 1이면 가장 최신, 2면 두 번째로 최신 파일을 반환합니다."""
+                            # 폴더 내의 파일들의 전체 경로와 함께 리스트를 생성합니다.
+                            files = [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f))]
+                            
+                            # 파일이 없다면 None을 반환
+                            if not files:
+                                return None
+                            
+                            # 파일들을 생성 시간 기준으로 정렬합니다.
+                            files.sort(key=os.path.getctime, reverse=True)
+                            
+                            # 요청한 순위의 파일을 반환합니다. n이 파일 수보다 많거나 0 이하인 경우 None을 반환합니다.
+                            if 1 <= n <= len(files):
+                                nth_latest_file = files[n-1]  # n번째 파일 선택
+                                print(nth_latest_file)
+                                return nth_latest_file
+                            else:
+                                return None
+
+            def check_data_in_second_row(file_path):
+                wb = openpyxl.load_workbook(file_path)
+                sheet = wb.active
+                second_row = list(sheet.iter_rows(min_row=2, max_row=2, values_only=True))
+                if second_row and any(cell is not None for cell in second_row[0]):
+                    return True
+                return False
+
+            row_index = 1
+            while target_num > 0:
+
+                i = get_nth_latest_file(download_folder, target_num)
+
+                wb = openpyxl.load_workbook(i)
+                sheet = wb.active  # 활성 시트 선택
+
+                # 새 워크북 생성
+                new_wb = openpyxl.load_workbook('new_file.xlsx')
+                new_sheet = new_wb.active
+
+                
+                if check_data_in_second_row(i):
+                    pass
+                else:
+                    new_sheet.cell(row=row_index, column=1, value=today_tday.strftime("%Y-%m-%d"))
+                    row_index += 1  # 새 시트에서의 행 인덱스 증가
+                    today_tday += timedelta(days=1)  # 날짜 하루 증가
+                    target_num -= 1
+                    new_wb.save('new_file.xlsx')
+                    continue
+
+                # 원본 시트의 행을 반복하며 첫 번째 행을 제외하고 데이터가 있는 행만 복사
+                for row in sheet.iter_rows(min_row=2):  # 첫 번째 행을 제외하고 시작
+                    # 각 셀에 데이터가 있는지 확인
+                    data_exists = any(cell.value not in (None, '', ' ') for cell in row)  # 빈 문자열과 공백도 무시
+
+                    # 날짜 입력
+                    new_sheet.cell(row=row_index, column=1, value=today_tday.strftime("%Y-%m-%d"))
+
+                    for col_index, cell in enumerate(row, start=2):
+                        new_sheet.cell(row=row_index, column=col_index, value=cell.value)
+
+
+                    row_index += 1  # 새 시트에서의 행 인덱스 증가
                 today_tday += timedelta(days=1)  # 날짜 하루 증가
-                target_num -= 1
+
+                # 새로운 파일에 저장
                 new_wb.save('new_file.xlsx')
-                continue
 
-            # 원본 시트의 행을 반복하며 첫 번째 행을 제외하고 데이터가 있는 행만 복사
-            for row in sheet.iter_rows(min_row=2):  # 첫 번째 행을 제외하고 시작
-                # 각 셀에 데이터가 있는지 확인
-                data_exists = any(cell.value not in (None, '', ' ') for cell in row)  # 빈 문자열과 공백도 무시
-
-                # 날짜 입력
-                new_sheet.cell(row=row_index, column=1, value=today_tday.strftime("%Y-%m-%d"))
-
-                for col_index, cell in enumerate(row, start=2):
-                    new_sheet.cell(row=row_index, column=col_index, value=cell.value)
-
-
-                row_index += 1  # 새 시트에서의 행 인덱스 증가
-            today_tday += timedelta(days=1)  # 날짜 하루 증가
-
-            # 새로운 파일에 저장
-            new_wb.save('new_file.xlsx')
-
-            print(target_num)
-            target_num -= 1
+                print(target_num)
+                target_num -= 1
 
     def run_coup_down(self):
         download_folder = "C:\\Users\\A\\Downloads"
@@ -642,6 +680,10 @@ class data_synchronization(QWidget):
 
         elif self.brand_comboBox.currentText() == "러브슬라임":
             id, pw = self.loveslime_credential()
+            print(id,"\n",pw,"\n")
+
+        elif self.brand_comboBox.currentText() == "하엔":
+            id, pw = self.haen_credential()
             print(id,"\n",pw,"\n")
 
 
@@ -936,6 +978,100 @@ class data_synchronization(QWidget):
 
             target_days -= 1
             target_num -= 1
+
+    def run_cafe(self):
+         # 크롬 On
+        ### chromedriver_autoinstaller.install() 사용 추가
+        chromedriver_path = chromedriver_autoinstaller.install()
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        chrome_options.add_argument("--start-maximized") #최대 크기로 시작
+        # chrome_options.add_argument('--incognito')
+        # chrome_options.add_argument('--window-size=1920,1080')  
+        # chrome_options.add_argument('--headless')
+        chrome_options.add_experimental_option('detach', True)
+
+        user_data = self.chrome_path_folder.text()
+        user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
+        chrome_options.add_argument(f"user-data-dir={user_data}")
+        chrome_options.add_argument("--profile-directory=Profile 1")
+        
+        user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36"
+        headers = {'user-agent' : user_agent}
+
+        driver = webdriver.Chrome(
+            service=Service(chromedriver_path),
+            options=chrome_options
+        )
+
+        
+        
+        driver.get("https://eclogin.cafe24.com/Shop/")
+
+        ##################################### 로그인
+        ##################################### 로그인
+        ##################################### 로그인
+        ##################################### 로그인
+
+        # ID
+        input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#mall_id")))
+        input_field.click()
+        time.sleep(1)
+        input_field.send_keys(Keys.CONTROL + "a")
+        input_field.send_keys(Keys.BACKSPACE)
+        driver.find_element(By.CSS_SELECTOR, "#mall_id").send_keys(cafe24_id)
+
+        # PW
+        input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#userpasswd")))
+        input_field.click()
+        input_field.send_keys(Keys.CONTROL + "a")
+        input_field.send_keys(Keys.BACKSPACE)
+        driver.find_element(By.CSS_SELECTOR, "#userpasswd").send_keys(cafe24_pw)
+
+        # 로그인클릭
+        driver.find_element(By.CSS_SELECTOR,'#frm_user > div > div.mButton > button').click()
+
+        #비밀번호변경안내
+        try: WebDriverWait(driver, 5).until(EC.element_to_be_clickable(((By.CSS_SELECTOR,"#iptBtnEm")))).click() 
+        except: pass
+
+        try:
+            time.sleep(3)
+            popup = driver.find_element(By.XPATH, '//*[contains(text(), "오늘 하루 보지 않기")]')
+            popup.click()
+
+        except: pass
+
+        #화면로딩대기
+        WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.XPATH, '//*[contains(text(), "오늘의 할 일")]')))
+
+        #통계 화면 이동
+        WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.ID, 'QA_Lnb_Menu2060'))).click()
+        WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.ID, 'QA_Lnb_Menu2062'))).click()
+        WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.ID, 'QA_Lnb_Menu2063'))).click()
+
+        input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#pr_start_date")))
+        input_field.click()
+        time.sleep(1)
+        input_field.send_keys(Keys.CONTROL + "a")
+        input_field.send_keys(Keys.BACKSPACE)
+        driver.find_element(By.CSS_SELECTOR, "#mall_id").send_keys(self.startdate.text())
+
+        input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#pr_start_date")))
+        input_field.click()
+        time.sleep(1)
+        input_field.send_keys(Keys.CONTROL + "a")
+        input_field.send_keys(Keys.BACKSPACE)
+        driver.find_element(By.CSS_SELECTOR, "#mall_id").send_keys(self.)
+
+        # 자세히보기클릭
+        element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#QA_day3 > div.mBoard.gScroll > table")))
+        driver.execute_script("arguments[0].scrollIntoView(true);", element) # 스크롤다운
+        WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#sReportGabView"))).click() 
+        
+        element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#QA_day3 > div.mBoard.gScroll > table")))
+        driver.execute_script("arguments[0].scrollIntoView(true);", element) # 스크롤다운
+        rows = driver.find_elements(By.CSS_SELECTOR, 'tbody.right tr')
 
     def folderopen(self):
         fname = QFileDialog.getExistingDirectory(self,'폴더선택','')
