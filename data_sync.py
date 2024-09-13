@@ -61,7 +61,6 @@ def save_credentials(app_name, id_text, pw_text):
         with open(file_path, "w") as file:
             file.write(f"{id_text}\n{pw_text}")
 
-
 # 두 번째 새 창 클래스 (노마셀 또는 러브슬라임 창)
 class NewWindow(QWidget):
     def __init__(self, app_name):
@@ -110,7 +109,6 @@ class data_synchronization(QWidget):
     def __init__(self):
         super().__init__()
         self.UI초기화()
-
     
     def UI초기화(self):
 
@@ -980,6 +978,19 @@ class data_synchronization(QWidget):
             target_num -= 1
 
     def run_cafe(self):
+
+        if self.brand_comboBox.currentText() == "노마셀":
+            id, pw = self.knowmycell_credential()
+            print(id,"\n",pw,"\n")
+
+        elif self.brand_comboBox.currentText() == "러브슬라임":
+            id, pw = self.loveslime_credential()
+            print(id,"\n",pw,"\n")
+
+        elif self.brand_comboBox.currentText() == "하엔":
+            id, pw = self.haen_credential()
+            print(id,"\n",pw,"\n")
+
          # 크롬 On
         ### chromedriver_autoinstaller.install() 사용 추가
         chromedriver_path = chromedriver_autoinstaller.install()
@@ -1019,14 +1030,14 @@ class data_synchronization(QWidget):
         time.sleep(1)
         input_field.send_keys(Keys.CONTROL + "a")
         input_field.send_keys(Keys.BACKSPACE)
-        driver.find_element(By.CSS_SELECTOR, "#mall_id").send_keys(cafe24_id)
+        driver.find_element(By.CSS_SELECTOR, "#mall_id").send_keys(id)
 
         # PW
         input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#userpasswd")))
         input_field.click()
         input_field.send_keys(Keys.CONTROL + "a")
         input_field.send_keys(Keys.BACKSPACE)
-        driver.find_element(By.CSS_SELECTOR, "#userpasswd").send_keys(cafe24_pw)
+        driver.find_element(By.CSS_SELECTOR, "#userpasswd").send_keys(pw)
 
         # 로그인클릭
         driver.find_element(By.CSS_SELECTOR,'#frm_user > div > div.mButton > button').click()
@@ -1055,14 +1066,14 @@ class data_synchronization(QWidget):
         time.sleep(1)
         input_field.send_keys(Keys.CONTROL + "a")
         input_field.send_keys(Keys.BACKSPACE)
-        driver.find_element(By.CSS_SELECTOR, "#mall_id").send_keys(self.startdate.text())
+        input_field.send_keys(self.startdate.text())
 
-        input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#pr_start_date")))
+        input_field = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#pr_end_date")))
         input_field.click()
         time.sleep(1)
         input_field.send_keys(Keys.CONTROL + "a")
         input_field.send_keys(Keys.BACKSPACE)
-        driver.find_element(By.CSS_SELECTOR, "#mall_id").send_keys(self.)
+        input_field.send_keys(self.)
 
         # 자세히보기클릭
         element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR,"#QA_day3 > div.mBoard.gScroll > table")))
