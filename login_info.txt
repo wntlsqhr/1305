@@ -2,7 +2,7 @@
 CAFE_HAEN_ID
 woo8425
 CAFE_HAEN_PW
-1305gold^
+1305gold^^
 
 CAFE_LOVE_ID
 wooo8425

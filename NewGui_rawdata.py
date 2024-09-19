@@ -452,29 +452,6 @@ class Rawdata_extractor(QWidget):
 
     def extract(self):
 
-        def ignore_errors_and_continue(func):
-            @functools.wraps(func)
-            def wrapper(*args, **kwargs):
-                # driver 또는 edge_driver 변수가 전역 범위에서 정의되었는지 확인
-                driver = None
-                if 'driver' in globals():
-                    driver = globals()['driver']
-                elif 'edge_driver' in globals():
-                    driver = globals()['edge_driver']
-                
-                try:
-                    return func(*args, **kwargs)
-                except Exception as e:
-                    print(f"Error in {func.__name__} ignored: {e}")
-                    if driver:
-                        try:
-                            driver.close()  # 현재 열린 탭 닫기
-                            driver.quit()   # 전체 브라우저 종료
-                            print("Driver closed successfully.")
-                        except Exception as close_error:
-                            print(f"Error closing driver: {close_error}")
-                    pass  # 오류가 발생한 함수는 무시하고 다음 코드로 진행
-            return wrapper
 
 
     # 타겟날짜 변수 저장
@@ -629,7 +606,7 @@ class Rawdata_extractor(QWidget):
         weekday_t = f"{today_tday}({weekday_krt})"
 
 # 카페24 매출
-        @ignore_errors_and_continue
+         
         def cafe24(url_cafe24, url_cafe24_req, cafe24_id, cafe24_pw, sheet_urlR, sheet_nameR, sheet_nameD):
 
             # 크롬 On
@@ -869,7 +846,7 @@ class Rawdata_extractor(QWidget):
             cafe24(url_cafe24, url_cafe24_req_ZQ, cafe24_id_ZQ, cafe24_pw_ZQ, sheet_ZQR_url, sheet_ZQR, sheet_ZQD)
     
 # 쿠팡 매출
-        @ignore_errors_and_continue
+         
         def sales_coup(url, id, pw, sheet_url, sheet_name, option):
 
             # 크롬 On
@@ -1081,7 +1058,7 @@ class Rawdata_extractor(QWidget):
             sales_coup(coupC_url, coupang_id_know, coupang_pw_know, sheet_url_coupC, sheet_name_knowC, options)
 
 # 네이버 매출
-        @ignore_errors_and_continue
+         
         def ssDown(brand):
 
             # 날짜 구하기
@@ -1247,7 +1224,7 @@ class Rawdata_extractor(QWidget):
             edge_driver.close()
 
 
-        @ignore_errors_and_continue
+         
         def ssWrite(sheet_name, sheet_url):
             defaultData = ["화장품/미용", "바디케어", "입욕제", "-", "러블로 러브슬라임 슬라임탕 젤 입욕제 젤탕", "9019908272",	"일반배송",	"0", "0", "0", "0.00%"]
             # 날짜 구하기
@@ -1364,7 +1341,7 @@ class Rawdata_extractor(QWidget):
             ssWrite(sheet_name, sheet_url)
 
 # 쿠팡 광고
-        @ignore_errors_and_continue
+         
         def advt_coupang(url_coupang_daily, id, pw):
 
             # 크롬 On
@@ -1735,7 +1712,7 @@ class Rawdata_extractor(QWidget):
             driver.close()
 
 #########쿠팡로데이터##########
-        @ignore_errors_and_continue
+         
         def advt_coupang_rawdata(sheet_url, sheet_name):
 
             xlsx_file = get_latest_file(download_folder)
@@ -1842,7 +1819,7 @@ class Rawdata_extractor(QWidget):
 
 
 ### 네이버 검색광고 광고
-        @ignore_errors_and_continue
+         
         def naverad(url):
 
             # EdgeOptions 객체 생성
@@ -1907,7 +1884,7 @@ class Rawdata_extractor(QWidget):
             time.sleep(1)
             edge_driver.close()
 
-        @ignore_errors_and_continue
+         
         def naveradInput(url, name):
 
             target_days = target_days_input
@@ -2011,7 +1988,7 @@ class Rawdata_extractor(QWidget):
 
 
 # 네이버 gfa
-        @ignore_errors_and_continue
+         
         def advt_gfa(url, sheet_url, sheet_name):
 
             # 서비스 계정 키 파일 경로
@@ -2115,7 +2092,7 @@ class Rawdata_extractor(QWidget):
             advt_gfa(url, sheet_url, sheet_name)
 
 # 파워컨텐츠
-        @ignore_errors_and_continue
+         
         def power(url, url2,  id, pw, sheetUrl, sheetName, key, key2, brand):
 
             # 서비스 계정 키 파일 경로
@@ -2446,7 +2423,7 @@ class Rawdata_extractor(QWidget):
 
 
 # 구글 광고
-        @ignore_errors_and_continue
+         
         def advt_google(url_google):
 
             # 크롬 On
@@ -2603,7 +2580,7 @@ class Rawdata_extractor(QWidget):
             time.sleep(2)
             driver.close()
 
-        @ignore_errors_and_continue
+         
         def advt_google_rawdata(sheet_url, sheet_name, brand):
 
             target_days = target_days_input
@@ -2726,7 +2703,7 @@ class Rawdata_extractor(QWidget):
 
 
 # 메타 광고
-        @ignore_errors_and_continue
+         
         def meta_rawdata(sheet_url, sheet_name, know_TF):
 
             xlsx_file = get_latest_file(download_folder)
@@ -2813,7 +2790,7 @@ class Rawdata_extractor(QWidget):
                     today_tdayTemp += timedelta(days=1)
 
         # 메타
-        @ignore_errors_and_continue
+         
         def meta(url_meta, know_TF):
 
             # 크롬 On
@@ -2945,7 +2922,7 @@ class Rawdata_extractor(QWidget):
             
 
 # 방문자수
-        @ignore_errors_and_continue
+         
         def visitors(url, id, pw, sheet_url, sheet_name):
 
             # 크롬 On
@@ -3181,7 +3158,7 @@ class Rawdata_extractor(QWidget):
             visitors(url_cafe24, cafe24_id_zq, cafe24_pw_zq, sheet_zqR_url, sheet_zqD)
 
 # 신규 가입자
-        @ignore_errors_and_continue
+         
         def new_member(url, id, pw, sheet_url, sheet_name):
 
             # 크롬 On
