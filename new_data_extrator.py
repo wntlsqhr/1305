@@ -417,22 +417,57 @@ class Rawdata_extractor(QWidget):
         self.chrome_path_folder.setReadOnly(True)
         self.loadText()
 
+    # 엣지폴더
+        # 엣지폴더 버튼
+        self.edge_slt_folder = QPushButton('엣지 폴더',self)
+        self.edge_slt_folder.setGeometry(330,610,100,29)
+        self.edge_slt_folder.clicked.connect(self.edgefolderopen)
+        self.edge_slt_folder.setStyleSheet(
+            """
+            QPushButton {
+                background-color: white;
+                border-radius: 1.5px;
+                border-width: 1px;
+                border-color: black;
+                border-style: solid;
+            }
+            QPushButton:hover {
+                background-color: rgb(120,120,120);
+            }
+            QPushButton:pressed {
+                background-color: rgb(50, 50, 50);
+            }
+            """
+        )
+
+        # 엣지폴더 경로
+        self.edge_path_folder = QLineEdit(self)
+        self.edge_path_folder.setGeometry(80,610,240,27)
+        self.edge_path_folder.setStyleSheet(
+                        "background-color: white;"
+                        "border-radius: 1.5px;"
+                        "border-width: 1px;"
+                        "border-color: black;"
+                        "border-style: solid;")  # 테두리 스타일 추가
+        self.edge_path_folder.setReadOnly(True)
+        self.loadText()  
+
     # 날짜
         # 날짜 선택
         self.combo = QComboBox(self)
-        self.combo.setGeometry(75, 613, 50, 39)
+        self.combo.setGeometry(75, 660, 50, 39)
         self.combo.addItems(["1", "2", "3", "4", "5", "6", "7"])
         self.combo.setFont(QFont('Helvetia', 12, QFont.Bold))
 
         # 날짜 레이블
         self.daybefore = QLabel("일 전까지", self)
-        self.daybefore.move(75, 655)
+        self.daybefore.move(75, 705)
         self.daybefore.setFont(QFont('Helvetia', 12, QFont.Bold))
 
     # 추출
         # 추출하기
         self.extr_button = QPushButton('추출하기',self)
-        self.extr_button.setGeometry(130,612,410,40)
+        self.extr_button.setGeometry(130,660,410,40)
         self.extr_button.clicked.connect(self.extract)
         self.extr_button.setStyleSheet(
             """
@@ -818,6 +853,9 @@ class Rawdata_extractor(QWidget):
 
                 driver.close()
 
+                # 완료 로그
+                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n완료")
+
             except Exception as e:
                 print(f"Error occurred: {e}")
                 if driver:
@@ -827,7 +865,7 @@ class Rawdata_extractor(QWidget):
                     except Exception as close_error:
                         print(f"Error closing driver: {close_error}")
 
-                # 오류가 발생하면 '실패'라고 QTextEdit에 출력
+                # 실패 로그
                 self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
 
         #카페24 하엔
@@ -896,7 +934,7 @@ class Rawdata_extractor(QWidget):
     
 # 쿠팡 매출
          
-        def sales_coup(url, id, pw, sheet_url, sheet_name, option):
+        def sales_coup(url, id, pw, sheet_url, sheet_name, option, brand):
             driver = None
             try:
 
@@ -1074,6 +1112,9 @@ class Rawdata_extractor(QWidget):
                     
                 driver.close()
 
+                # 완료 로그
+                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCoup.text()}-{brand}\n완료")
+
             except Exception as e:
                 print(f"Error occurred: {e}")
                 if driver:
@@ -1082,6 +1123,9 @@ class Rawdata_extractor(QWidget):
                         print("Driver closed successfully.")
                     except Exception as close_error:
                         print(f"Error closing driver: {close_error}")
+
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCoup.text()}-{brand}\n실패")
 
             
         # 쿠팡 하엔
@@ -1095,8 +1139,9 @@ class Rawdata_extractor(QWidget):
             coupang_pw_haen = self.login_info("COUP_HAEN_PW")
             sheet_name_haenC = '하엔C'
             options = "하엔"
+            brand = "하엔"
 
-            sales_coup(coupC_url, coupang_id_haen, coupang_pw_haen, sheet_url_coupC, sheet_name_haenC, options)
+            sales_coup(coupC_url, coupang_id_haen, coupang_pw_haen, sheet_url_coupC, sheet_name_haenC, options, brand)
 
         # 쿠팡 러블로
         if self.love_salesCoup.isChecked() == True:
@@ -1105,8 +1150,10 @@ class Rawdata_extractor(QWidget):
             coupang_pw_love = self.login_info("COUP_LOVE_PW")
             sheet_name_loveC = '러블로C'
             options = "러브슬라임"
+            brand = "하엔"
 
-            sales_coup(coupC_url, coupang_id_love, coupang_pw_love, sheet_url_coupC, sheet_name_loveC, options)
+
+            sales_coup(coupC_url, coupang_id_love, coupang_pw_love, sheet_url_coupC, sheet_name_loveC, options, brand)
 
         # 쿠팡 노마셀
         if self.know_salesCoup.isChecked() == True:
@@ -1114,8 +1161,10 @@ class Rawdata_extractor(QWidget):
             coupang_pw_know = self.login_info("COUP_KNOW_PW")
             sheet_name_knowC = '노마셀C'
             options = "노마셀"
+            brand = "하엔"
 
-            sales_coup(coupC_url, coupang_id_know, coupang_pw_know, sheet_url_coupC, sheet_name_knowC, options)
+
+            sales_coup(coupC_url, coupang_id_know, coupang_pw_know, sheet_url_coupC, sheet_name_knowC, options, brand)
 
 # 네이버 매출
         def ssDown(brand):
@@ -1285,6 +1334,8 @@ class Rawdata_extractor(QWidget):
                     
                 edge_driver.close()
 
+                
+
             except Exception as e:
                 print(f"Error occurred: {e}")
                 if edge_driver:
@@ -1294,7 +1345,7 @@ class Rawdata_extractor(QWidget):
                     except Exception as close_error:
                         print(f"Error closing driver: {close_error}")
 
-        def ssWrite(sheet_name, sheet_url):
+        def ssWrite(sheet_name, sheet_url, brand_log):
             defaultData = ["화장품/미용", "바디케어", "입욕제", "-", "러블로 러브슬라임 슬라임탕 젤 입욕제 젤탕", "9019908272",	"일반배송",	"0", "0", "0", "0.00%"]
             # 날짜 구하기
             today = date.today()
@@ -1378,6 +1429,9 @@ class Rawdata_extractor(QWidget):
                 startday += timedelta(days=1)  # 날짜 하루 증가
                 number -= 1
 
+            # 완료 로그
+            self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand_log}\n완료")
+
         # if self.chk_ss_haen.isChecked() == True:
 
         #     label = self.chk_cafe_haen
@@ -1397,27 +1451,31 @@ class Rawdata_extractor(QWidget):
 
             brand = "러브슬"
             sheet_name = "러블로N"
+            brand_log = "러블로"
 
             try:
-                ssDown(brand)
+                ssDown(brand, brand_log)
                 ssWrite(sheet_name, sheet_url)
 
             except Exception as e:
-                print(f"Error occurred in ssDown: {e}")
-                # 1번에서 오류가 발생하면 2번은 실행되지 않음
+                print(f"Error occurred: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand}\n실패")
 
         if self.know_salesNaver.isChecked() == True:
 
             brand = "노마셀"
             sheet_name = "노마셀N"
+            brand_log = "노마셀"
 
             try:
-                ssDown(brand)
+                ssDown(brand, brand_log)
                 ssWrite(sheet_name, sheet_url)
 
             except Exception as e:
-                print(f"Error occurred in ssDown: {e}")
-                # 1번에서 오류가 발생하면 2번은 실행되지 않음
+                print(f"Error occurred: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand}\n실패")
 
 # 쿠팡 광고
         def advt_coupang(url_coupang_daily, id, pw):
@@ -1789,6 +1847,7 @@ class Rawdata_extractor(QWidget):
                     except: pass
 
                 driver.close()
+                
 
             except Exception as e:
                 print(f"Error occurred: {e}")
@@ -1800,8 +1859,7 @@ class Rawdata_extractor(QWidget):
                         print(f"Error closing driver: {close_error}")
 
 #########쿠팡로데이터##########
-         
-        def advt_coupang_rawdata(sheet_url, sheet_name):
+        def advt_coupang_rawdata(sheet_url, sheet_name, brand):
 
             xlsx_file = get_latest_file(download_folder)
 
@@ -1868,25 +1926,30 @@ class Rawdata_extractor(QWidget):
                 sheet.update([(updated_data_list[0])[1:-1]], range_to_write)
                 sheet.update([[formatted_date]], f'A{next_row}')
 
+            # 완료 로그
+            self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtCoup.text()}-{brand}\n완료")
+
 
         coupC_url = "https://wing.coupang.com/seller/notification/metrics/dashboard"
         coup_report_url = 'https://advertising.coupang.com/marketing-reporting/billboard/reports/pa'
         sheet_url_coupC = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=374561563'
 
-        
         if self.haen_advtCoup.isChecked() == True:
             
             coupang_id_haen = self.login_info("COUP_HAEN_ID")
             coupang_pw_haen = self.login_info("COUP_HAEN_PW")
             sheet_url_haen_all = 'https://docs.google.com/spreadsheets/d/1V8b3FRe_8witwHXQceekgm-BAvTQLwwkcyuaW-mIi30/edit#gid=1338112098'
             sheet_name_haenR = '하엔 쿠팡 R'
+            brand = "하엔"
 
             try:
                 advt_coupang(coup_report_url, coupang_id_haen, coupang_pw_haen)
-                advt_coupang_rawdata(sheet_url_haen_all, sheet_name_haenR)
+                advt_coupang_rawdata(sheet_url_haen_all, sheet_name_haenR, brand)
 
             except Exception as e:
                 print(f"Error occurred in advt_Coupang: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
 
         # 쿠팡 러블로
         if self.love_advtCoup.isChecked() == True:
@@ -1895,13 +1958,16 @@ class Rawdata_extractor(QWidget):
             coupang_pw_lovelo = self.login_info("COUP_LOVE_PW")
             sheet_url_love_all = 'https://docs.google.com/spreadsheets/d/1NVnVJsCj0Ap_o2xabua9ANUw_1IUREVMJKteY_O1yks/edit#gid=392530415'
             sheet_name_loveR = '러블로 쿠팡 R'
+            brand = "러블로"
 
             try:
                 advt_coupang(coup_report_url, coupang_id_lovelo, coupang_pw_lovelo)
-                advt_coupang_rawdata(sheet_url_love_all, sheet_name_loveR)
+                advt_coupang_rawdata(sheet_url_love_all, sheet_name_loveR,brand )
 
             except Exception as e:
                 print(f"Error occurred in advt_Coupang: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
 
         # 쿠팡 노마셀
         if self.know_advtCoup.isChecked() == True:
@@ -1909,13 +1975,16 @@ class Rawdata_extractor(QWidget):
             coupang_pw_knowmycell = self.login_info("COUP_KNOW_PW")
             sheet_url_know_all = 'https://docs.google.com/spreadsheets/d/12FWmZMuznsxOY_IDbBWeSis-EW1Ds1f9TB6X7K6TFBc/edit#gid=1042061913'
             sheet_name_knowR = '노마셀 쿠팡 R'
+            brand = "노마셀"
 
             try:
                 advt_coupang(coup_report_url, coupang_id_knowmycell, coupang_pw_knowmycell)
-                advt_coupang_rawdata(sheet_url_know_all, sheet_name_knowR)
+                advt_coupang_rawdata(sheet_url_know_all, sheet_name_knowR, brand)
 
             except Exception as e:
                 print(f"Error occurred in advt_Coupang: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
 
 
 ### 네이버 검색광고 광고
@@ -1996,7 +2065,7 @@ class Rawdata_extractor(QWidget):
                     except Exception as close_error:
                         print(f"Error closing driver: {close_error}")
 
-        def naveradInput(url, name):
+        def naveradInput(url, name, brand):
 
             target_days = target_days_input
             dayx = datetime.timedelta(days=target_days)
@@ -2061,62 +2130,77 @@ class Rawdata_extractor(QWidget):
                         sheet.update([result], range_to_write)
                 today_tday += timedelta(days=1)
 
+            # 완료 로그
+            self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n완료")
+
         if self.haen_advtNaver.isChecked() == True:
 
             sheet_url = 'https://docs.google.com/spreadsheets/d/1V8b3FRe_8witwHXQceekgm-BAvTQLwwkcyuaW-mIi30/edit?gid=2136174248#gid=2136174248'
             sheet_name = '하엔 네이버 R'
             target_url = "https://manage.searchad.naver.com/customers/2621471/reports/rtt-a001-000000000650376"
+            brand = "하엔"
             
             try:
                 naverad(target_url)
-                naveradInput(sheet_url, sheet_name)
+                naveradInput(sheet_url, sheet_name, brand)
 
             except Exception as e:
                 print(f"Error occurred in advt_Naver: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
 
         if self.love_advtNaver.isChecked() == True:
 
             sheet_url = 'https://docs.google.com/spreadsheets/d/1NVnVJsCj0Ap_o2xabua9ANUw_1IUREVMJKteY_O1yks/edit?gid=910059812#gid=910059812'
             sheet_name = '러블로 네이버 R'
             target_url = "https://manage.searchad.naver.com/customers/2914810/reports/rtt-a001-000000000651901"
+            brand = "러블로"
             
             try:
                 naverad(target_url)
-                naveradInput(sheet_url, sheet_name)
+                naveradInput(sheet_url, sheet_name, brand)
 
             except Exception as e:
                 print(f"Error occurred in advt_Naver: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
 
         if self.know_advtNaver.isChecked() == True:
 
             sheet_url = 'https://docs.google.com/spreadsheets/d/12FWmZMuznsxOY_IDbBWeSis-EW1Ds1f9TB6X7K6TFBc/edit?gid=1997928779#gid=1997928779'
             sheet_name = '노마셀 네이버 R'
             target_url = "https://manage.searchad.naver.com/customers/2957190/reports/rtt-a001-000000000651985"
+            brand = "노마셀"
             
             try:
                 naverad(target_url)
-                naveradInput(sheet_url, sheet_name)
+                naveradInput(sheet_url, sheet_name, brand)
 
             except Exception as e:
                 print(f"Error occurred in advt_Naver: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
 
         if self.zq_advtNaver.isChecked() == True:
 
             sheet_url = 'https://docs.google.com/spreadsheets/d/1aGDKs5seG0d8CzQ99_pKBNFQCNRdC1-AppwIfi1zSuc/edit?gid=1913139260#gid=1913139260'
             sheet_name = '제니크 네이버 R'
             target_url = "https://manage.searchad.naver.com/customers/3163563/reports/rtt-a001-000000000725619"
+            brand = "제니크"
             
             try:
                 naverad(target_url)
-                naveradInput(sheet_url, sheet_name)
+                naveradInput(sheet_url, sheet_name, brand)
 
             except Exception as e:
                 print(f"Error occurred in advt_Naver: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
 
 
 # 네이버 gfa
          
-        def advt_gfa(url, sheet_url, sheet_name):
+        def advt_gfa(url, sheet_url, sheet_name, brand):
 
             edge_driver = None
             try:
@@ -2213,6 +2297,9 @@ class Rawdata_extractor(QWidget):
 
                     today_tday_temp += timedelta(days=1)
 
+                # 완료 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtGFA.text()}-{brand}\n완료")
+
             except Exception as e:
                 print(f"Error occurred: {e}")
                 if edge_driver:
@@ -2222,14 +2309,16 @@ class Rawdata_extractor(QWidget):
                     except Exception as close_error:
                         print(f"Error closing driver: {close_error}")
 
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtGFA.text()}-{brand}\n실패")
+
         if self.haen_advtGFA.isChecked() == True:
             url = "https://gfa.naver.com/adAccount/accounts/69648/report/performance?startDate=2024-08-27&endDate=2024-09-02&adUnit=AD_ACCOUNT&dateUnit=DAY&placeUnit=TOTAL&dimension=TOTAL&currentPage=1&pageSize=10&filterList=%5B%5D&showColList=%5B%22result%22,%22sales_per_result%22,%22sales%22,%22imp_count%22,%22cpm%22,%22click_count%22,%22cpc%22,%22ctr%22%5D&period=last7daysWithoutToday&accessAdAccountNo=69648"
-
             sheet_url = "https://docs.google.com/spreadsheets/d/1V8b3FRe_8witwHXQceekgm-BAvTQLwwkcyuaW-mIi30/edit?gid=74286471#gid=74286471"
-
             sheet_name = "하엔 네이버 GFA R"
+            brand = "하엔"
 
-            advt_gfa(url, sheet_url, sheet_name)
+            advt_gfa(url, sheet_url, sheet_name, brand)
 
 # 파워컨텐츠
          
@@ -2523,6 +2612,9 @@ class Rawdata_extractor(QWidget):
                 driver.switch_to.window(driver.window_handles[0])
                 driver.close()
 
+                # 완료 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtPC.text()}-{brand}\n완료")
+
             except Exception as e:
                 print(f"Error occurred: {e}")
                 if driver:
@@ -2532,6 +2624,9 @@ class Rawdata_extractor(QWidget):
                             driver.close()  # 현재 창 닫기
                     except Exception as close_error:
                         print(f"Error closing driver: {close_error}")
+
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtPC.text()}-{brand}\n실패")
 
         url_cafe24 = "https://eclogin.cafe24.com/Shop/" 
         
@@ -2848,6 +2943,9 @@ class Rawdata_extractor(QWidget):
                         next_row += 1
 
                 today_tday += timedelta(days=1)
+            
+                # 완료 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtGgle.text()}-{brand}\n완료")
 
         if self.haen_advtGgle.isChecked() == True:
             url_ads_haen = 'https://ads.google.com/aw/reporteditor/view?ocid=1181720304&workspaceId=0&reportId=927965366&euid=1114690018&__u=8943315282&uscid=1181720304&__c=5821258096&authuser=0'
@@ -2860,6 +2958,8 @@ class Rawdata_extractor(QWidget):
                 advt_google_rawdata(sheet_url_goog, sheet_name_goog, brand)
             except Exception as e:
                 print(f"Error occurred in advt_Google: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtGgle.text()}-{brand}\n실패")
 
         if self.know_advtGgle.isChecked() == True:
             url_ads_know = 'https://ads.google.com/aw/reporteditor/view?ocid=1379143590&workspaceId=-1615213561&reportId=928192574&euid=1114690018&__u=8943315282&uscid=1379143590&__c=4267857910&authuser=0'
@@ -2872,10 +2972,12 @@ class Rawdata_extractor(QWidget):
                 advt_google_rawdata(sheet_url_goog, sheet_name_goog, brand)
             except Exception as e:
                 print(f"Error occurred in advt_Google: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtGgle.text()}-{brand}\n실패")
 
 
 # 메타 광고
-        def meta_rawdata(sheet_url, sheet_name, know_TF):
+        def meta_rawdata(sheet_url, sheet_name, know_TF, brand):
 
             xlsx_file = get_latest_file(download_folder)
             wb = load_workbook(xlsx_file)
@@ -2959,6 +3061,9 @@ class Rawdata_extractor(QWidget):
                         sheet.update([metaDataEmpty], range_to_write) #한줄
 
                     today_tdayTemp += timedelta(days=1)
+
+            # 완료 로그
+            self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n완료")
 
 # 메타
         def meta(url_meta, know_TF):
@@ -3067,12 +3172,15 @@ class Rawdata_extractor(QWidget):
             sheet_url_haen_all = 'https://docs.google.com/spreadsheets/d/1V8b3FRe_8witwHXQceekgm-BAvTQLwwkcyuaW-mIi30/edit#gid=168246212'
             sheet_name_haen = '하엔 페이스북 R'
             know_TF = 0
+            brand = "하엔"
 
             try:
                 meta(url_meta_haen, know_TF)
-                meta_rawdata(sheet_url_haen_all, sheet_name_haen, know_TF)
+                meta_rawdata(sheet_url_haen_all, sheet_name_haen, know_TF, brand)
             except Exception as e:
                 print(f"Error occurred in advt_Meta: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
 
         #메타 러블로
         if self.love_advtMeta.isChecked() == True:
@@ -3080,12 +3188,15 @@ class Rawdata_extractor(QWidget):
             sheet_url_love_all = 'https://docs.google.com/spreadsheets/d/1NVnVJsCj0Ap_o2xabua9ANUw_1IUREVMJKteY_O1yks/edit#gid=1607702031'
             sheet_name_love = '러블로 페이스북 R'
             know_TF = 0
+            brand = "러블로"
 
             try:
                 meta(url_meta_lovelo, know_TF)
-                meta_rawdata(sheet_url_love_all, sheet_name_love, know_TF)
+                meta_rawdata(sheet_url_love_all, sheet_name_love, know_TF, brand)
             except Exception as e:
                 print(f"Error occurred in advt_Meta: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
 
         #메타 노마셀
         if self.know_advtMeta.isChecked() == True:
@@ -3093,12 +3204,15 @@ class Rawdata_extractor(QWidget):
             sheet_url_know_all = 'https://docs.google.com/spreadsheets/d/12FWmZMuznsxOY_IDbBWeSis-EW1Ds1f9TB6X7K6TFBc/edit#gid=137297262'
             sheet_name_know = '노마셀 페이스북 R'
             know_TF = 1
+            brand = "노마셀"
 
             try:
                 meta(url_meta_knowmycell, know_TF)
-                meta_rawdata(sheet_url_know_all, sheet_name_know, know_TF)
+                meta_rawdata(sheet_url_know_all, sheet_name_know, know_TF, brand)
             except Exception as e:
                 print(f"Error occurred in advt_Meta: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
 
         #메타 제니크
         if self.zq_advtMeta.isChecked() == True:
@@ -3106,17 +3220,20 @@ class Rawdata_extractor(QWidget):
             sheet_url_zq_all = 'https://docs.google.com/spreadsheets/d/1aGDKs5seG0d8CzQ99_pKBNFQCNRdC1-AppwIfi1zSuc/edit?gid=36988624#gid=36988624'
             sheet_name_zq = '제니크 페이스북 R'
             know_TF = 1
+            brand = "제니크"
 
             try:
                 meta(url_meta_zq, know_TF)
-                meta_rawdata(sheet_url_zq_all, sheet_name_zq, know_TF)
+                meta_rawdata(sheet_url_zq_all, sheet_name_zq, know_TF, brand)
             except Exception as e:
                 print(f"Error occurred in advt_Meta: {e}")
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
 
 
 # 방문자수
          
-        def visitors(url, id, pw, sheet_url, sheet_name):
+        def visitors(url, id, pw, sheet_url, sheet_name, brand):
 
             driver = None
             try:
@@ -3302,6 +3419,9 @@ class Rawdata_extractor(QWidget):
                 driver.switch_to.window(driver.window_handles[0]) #팝업으로 제어 변경
                 driver.close()
 
+                # 완료 로그
+                self.logBox.setPlainText(f"{self.etc_group_box.title()}-{self.visitors.text()}-{brand}\n완료")
+
             except Exception as e:
                 print(f"Error occurred: {e}")
                 if driver:
@@ -3312,17 +3432,21 @@ class Rawdata_extractor(QWidget):
                     except Exception as close_error:
                         print(f"Error closing driver: {close_error}")
 
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.etc_group_box.title()}-{self.visitors.text()}-{brand}\n실패")
+
         if self.haen_visitors.isChecked() == True:
 
             url_cafe24 = "https://eclogin.cafe24.com/Shop/"
             
             cafe24_id_haen = self.login_info("CAFE_HAEN_ID")
             cafe24_pw_haen = self.login_info("CAFE_HAEN_PW")
+            brand = "하엔"
 
             sheet_haenR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=1894651086'
             sheet_haenD = "하엔D"
         
-            visitors(url_cafe24, cafe24_id_haen, cafe24_pw_haen, sheet_haenR_url, sheet_haenD)
+            visitors(url_cafe24, cafe24_id_haen, cafe24_pw_haen, sheet_haenR_url, sheet_haenD, brand)
 
         #카페24 러블로
         if self.love_visitors.isChecked() == True:
@@ -3331,11 +3455,12 @@ class Rawdata_extractor(QWidget):
 
             cafe24_id_lovelo = self.login_info("CAFE_LOVE_ID")
             cafe24_pw_lovelo = self.login_info("CAFE_LOVE_PW")
+            brand = "하엔"
 
             sheet_loveR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=872830966'
             sheet_loveD = "러블로D"
 
-            visitors(url_cafe24, cafe24_id_lovelo, cafe24_pw_lovelo, sheet_loveR_url, sheet_loveD)
+            visitors(url_cafe24, cafe24_id_lovelo, cafe24_pw_lovelo, sheet_loveR_url, sheet_loveD, brand)
 
         #카페24 노마셀
         if self.know_visitors.isChecked() == True:
@@ -3344,11 +3469,12 @@ class Rawdata_extractor(QWidget):
 
             cafe24_id_knowmycell = self.login_info("CAFE_KNOW_ID")
             cafe24_pw_knowmycell = self.login_info("CAFE_KNOW_PW")
+            brand = "하엔"
 
             sheet_knowR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=567505346'
             sheet_knowD = "노마셀D"
 
-            visitors(url_cafe24, cafe24_id_knowmycell, cafe24_pw_knowmycell, sheet_knowR_url, sheet_knowD)
+            visitors(url_cafe24, cafe24_id_knowmycell, cafe24_pw_knowmycell, sheet_knowR_url, sheet_knowD, brand)
 
         #카페24 제니크
         if self.zq_visitors.isChecked() == True:
@@ -3357,15 +3483,16 @@ class Rawdata_extractor(QWidget):
 
             cafe24_id_zq = self.login_info("CAFE_ZQ_ID")
             cafe24_pw_zq = self.login_info("CAFE_ZQ_PW")
+            brand = "하엔"
 
             sheet_zqR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=567505346'
             sheet_zqD = "제니크D"
 
-            visitors(url_cafe24, cafe24_id_zq, cafe24_pw_zq, sheet_zqR_url, sheet_zqD)
+            visitors(url_cafe24, cafe24_id_zq, cafe24_pw_zq, sheet_zqR_url, sheet_zqD, brand)
 
 # 신규 가입자
          
-        def new_member(url, id, pw, sheet_url, sheet_name):
+        def new_member(url, id, pw, sheet_url, sheet_name, brand):
 
             driver = None
             try:
@@ -3550,6 +3677,9 @@ class Rawdata_extractor(QWidget):
                 driver.switch_to.window(driver.window_handles[0]) #팝업으로 제어 변경
                 driver.close()
 
+                # 완료 로그
+                self.logBox.setPlainText(f"{self.etc_group_box.title()}-{self.newMemb.text()}-{brand}\n완료")
+
             except Exception as e:
                 print(f"Error occurred: {e}")
                 if driver:
@@ -3560,17 +3690,21 @@ class Rawdata_extractor(QWidget):
                     except Exception as close_error:
                         print(f"Error closing driver: {close_error}")
 
+                # 실패 로그
+                self.logBox.setPlainText(f"{self.etc_group_box.title()}-{self.newMemb.text()}-{brand}\n실패")
+
         if self.haen_newMemb.isChecked() == True:
 
             url_cafe24 = "https://eclogin.cafe24.com/Shop/"
             
             cafe24_id_haen = self.login_info("CAFE_HAEN_ID")
             cafe24_pw_haen = self.login_info("CAFE_HAEN_PW")
+            brand = "하엔"
 
             sheet_haenR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=1894651086'
             sheet_name = "하엔신규"
         
-            new_member(url_cafe24, cafe24_id_haen, cafe24_pw_haen, sheet_haenR_url, sheet_name)
+            new_member(url_cafe24, cafe24_id_haen, cafe24_pw_haen, sheet_haenR_url, sheet_name, brand)
 
         #카페24 러블로
         if self.love_newMemb.isChecked() == True:
@@ -3579,11 +3713,12 @@ class Rawdata_extractor(QWidget):
 
             cafe24_id_lovelo = self.login_info("CAFE_LOVE_ID")
             cafe24_pw_lovelo = self.login_info("CAFE_LOVE_PW")
+            brand = "하엔"
 
             sheet_loveR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=872830966'
             sheet_name = "러블로신규"
 
-            new_member(url_cafe24, cafe24_id_lovelo, cafe24_pw_lovelo, sheet_loveR_url, sheet_name)
+            new_member(url_cafe24, cafe24_id_lovelo, cafe24_pw_lovelo, sheet_loveR_url, sheet_name, brand)
 
         #카페24 노마셀
         if self.know_newMemb.isChecked() == True:
@@ -3592,11 +3727,12 @@ class Rawdata_extractor(QWidget):
 
             cafe24_id_knowmycell = self.login_info("CAFE_KNOW_ID")
             cafe24_pw_knowmycell = self.login_info("CAFE_KNOW_PW")
+            brand = "하엔"
 
             sheet_knowR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=567505346'
             sheet_name = "노마셀신규"
 
-            new_member(url_cafe24, cafe24_id_knowmycell, cafe24_pw_knowmycell, sheet_knowR_url, sheet_name)
+            new_member(url_cafe24, cafe24_id_knowmycell, cafe24_pw_knowmycell, sheet_knowR_url, sheet_name, brand)
 
         #카페24 제니크
         if self.zq_newMemb.isChecked() == True:
@@ -3605,11 +3741,12 @@ class Rawdata_extractor(QWidget):
 
             cafe24_id_zq = self.login_info("CAFE_ZQ_ID")
             cafe24_pw_zq = self.login_info("CAFE_ZQ_PW")
+            brand = "하엔"
 
             sheet_zqR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=567505346'
             sheet_name = "제니크신규"
 
-            new_member(url_cafe24, cafe24_id_zq, cafe24_pw_zq, sheet_zqR_url, sheet_name)
+            new_member(url_cafe24, cafe24_id_zq, cafe24_pw_zq, sheet_zqR_url, sheet_name, brand)
 
 
         msg = QMessageBox()
@@ -3624,10 +3761,13 @@ class Rawdata_extractor(QWidget):
     def saveText(self):
         text = self.path_folder.text()
         text1 = self.chrome_path_folder.text()
+        text2 = self.edge_path_folder.text()
         with open('saved_text.txt', 'w') as file:
             file.write(text)
             file.write("\n")
             file.write(text1)
+            file.write("\n")
+            file.write(text2)
         QMessageBox.information(self,'알림','저장되었습니다.')
 
         with open('checkbox_state.txt', 'w') as file:
@@ -3743,7 +3883,8 @@ class Rawdata_extractor(QWidget):
                     texts = saved_text.split("\n")
 
                     self.path_folder.setText(texts[0])
-                    self.chrome_path_folder.setText(texts[1])
+                    self.edge_path_folder.setText(texts[1])
+                    # self.chrome_path_folder.setText(texts[1])
 
                     
             except FileNotFoundError:
@@ -3769,6 +3910,10 @@ class Rawdata_extractor(QWidget):
     def chromefolderopen(self):
         fname = QFileDialog.getExistingDirectory(self,'폴더선택','')
         self.chrome_path_folder.setText(fname)
+
+    def edgefolderopen(self):
+        fname = QFileDialog.getExistingDirectory(self,'폴더선택','')
+        self.edge_path_folder.setText(fname)
 
     def my_exception_hook(exctype, value, traceback):
         # Print the error and traceback
