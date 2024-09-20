@@ -415,7 +415,6 @@ class Rawdata_extractor(QWidget):
                         "border-color: black;"
                         "border-style: solid;")  # 테두리 스타일 추가
         self.chrome_path_folder.setReadOnly(True)
-        self.loadText()
 
     # 엣지폴더
         # 엣지폴더 버튼
@@ -681,7 +680,6 @@ class Rawdata_extractor(QWidget):
                 chrome_options.add_experimental_option('detach', True)
 
                 user_data = self.chrome_path_folder.text()
-                # user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
                 chrome_options.add_argument(f"user-data-dir={user_data}")
                 chrome_options.add_argument("--profile-directory=Profile 1")
                 
@@ -950,7 +948,6 @@ class Rawdata_extractor(QWidget):
                 chrome_options.add_experimental_option('detach', True)
 
                 user_data = self.chrome_path_folder.text()
-                user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
                 chrome_options.add_argument(f"user-data-dir={user_data}")
                 chrome_options.add_argument("--profile-directory=Profile 1")
                 
@@ -1493,7 +1490,6 @@ class Rawdata_extractor(QWidget):
                 chrome_options.add_experimental_option('detach', True)
 
                 user_data = self.chrome_path_folder.text()
-                user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
                 chrome_options.add_argument(f"user-data-dir={user_data}")
                 chrome_options.add_argument("--profile-directory=Profile 1")
                 
@@ -2351,7 +2347,6 @@ class Rawdata_extractor(QWidget):
                 chrome_options.add_experimental_option('detach', True)
 
                 user_data = self.chrome_path_folder.text()
-                user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
                 chrome_options.add_argument(f"user-data-dir={user_data}")
                 chrome_options.add_argument("--profile-directory=Profile 1")
                 
@@ -2689,7 +2684,6 @@ class Rawdata_extractor(QWidget):
                 chrome_options.add_experimental_option('detach', True)
 
                 user_data = self.chrome_path_folder.text()
-                user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data2'
                 chrome_options.add_argument(f"user-data-dir={user_data}")
                 chrome_options.add_argument("--profile-directory=Profile 1")
                 
@@ -3079,7 +3073,6 @@ class Rawdata_extractor(QWidget):
                 chrome_options.add_experimental_option('detach', True)
 
                 user_data = self.chrome_path_folder.text()
-                user_data = 'C:\\Users\\A\\AppData\\Local\\Google\\Chrome\\User Data1'
                 chrome_options.add_argument(f"user-data-dir={user_data}")
                 chrome_options.add_argument("--profile-directory=Profile 1")
                 
@@ -3882,9 +3875,11 @@ class Rawdata_extractor(QWidget):
                     saved_text = f.read()
                     texts = saved_text.split("\n")
 
+                    print(texts)
+
                     self.path_folder.setText(texts[0])
-                    self.edge_path_folder.setText(texts[1])
-                    # self.chrome_path_folder.setText(texts[1])
+                    self.chrome_path_folder.setText(texts[1])
+                    self.edge_path_folder.setText(texts[2])
 
                     
             except FileNotFoundError:
