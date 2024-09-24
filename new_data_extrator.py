@@ -852,7 +852,7 @@ class Rawdata_extractor(QWidget):
                 driver.close()
 
                 # 완료 로그
-                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n완료")
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n완료")
 
             except Exception as e:
                 print(f"Error occurred: {e}")
@@ -864,7 +864,7 @@ class Rawdata_extractor(QWidget):
                         print(f"Error closing driver: {close_error}")
 
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
 
         #카페24 하엔
         if self.haen_salesCafe24.isChecked() == True:
@@ -980,8 +980,28 @@ class Rawdata_extractor(QWidget):
 
                 while target_days > 0:
 
+                    # 서비스 계정 키 파일 경로
+                    credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+
+                    # gspread 클라이언트 초기화
+                    client = gspread.service_account(filename=credential_file)
+
+                    # Google 시트 열기
+                    spreadsheet = client.open_by_url(sheet_url)
+
+                    # 첫 번째 시트 선택
+                    sheet = spreadsheet.worksheet(sheet_name)
+
+                    last_row = len(sheet.get_all_values())
+                    print(last_row)
+                    next_row = last_row + 1  # 다음 행 번호
+
                     dayx = datetime.timedelta(days=target_days)
                     today_tday_str = (today-dayx).strftime('%Y-%m-%d')
+
+                    if str(today_tday_str) in sheet.col_values(1):
+                        target_days -= 1
+                        continue
                     
                     try:
                         time.sleep(1)
@@ -1076,30 +1096,15 @@ class Rawdata_extractor(QWidget):
                     # 결과 출력
                     print(updated_data_list)
 
-                    # 서비스 계정 키 파일 경로
-                    credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
-
-                    # gspread 클라이언트 초기화
-                    client = gspread.service_account(filename=credential_file)
-
-                    # Google 시트 열기
-                    spreadsheet = client.open_by_url(sheet_url)
-
-                    # 첫 번째 시트 선택
-                    sheet = spreadsheet.worksheet(sheet_name)
-
-                    last_row = len(sheet.get_all_values())
-                    print(last_row)
-                    next_row = last_row + 1  # 다음 행 번호
+                    
                         
                     # Google 시트에 데이터 쓰기
                     if len(updated_data_list) > 1:
                         i = 0
-                        while i < len(updated_data_list):
-                            range_to_write = f'B{next_row+i}:N{next_row+i}'
-                            sheet.update([updated_data_list[i]], range_to_write)
-                            sheet.update([[today_tday_str]], f'A{next_row+i}')
-                            i += 1
+                        range_to_write = f'B{next_row+i}:N{next_row+i}'
+                        sheet.update([updated_data_list[i]], range_to_write)
+                        sheet.update([[today_tday_str]], f'A{next_row+i}')
+                        i += 1
                     else:
                         range_to_write = f'B{next_row}:N{next_row}'
                         sheet.update([updated_data_list[0]], range_to_write)
@@ -1110,7 +1115,7 @@ class Rawdata_extractor(QWidget):
                 driver.close()
 
                 # 완료 로그
-                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCoup.text()}-{brand}\n완료")
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesCoup.text()}-{brand}\n완료")
 
             except Exception as e:
                 print(f"Error occurred: {e}")
@@ -1122,14 +1127,12 @@ class Rawdata_extractor(QWidget):
                         print(f"Error closing driver: {close_error}")
 
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCoup.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesCoup.text()}-{brand}\n실패")
 
-            
         # 쿠팡 하엔
         coupC_url = "https://wing.coupang.com/seller/notification/metrics/dashboard"
         sheet_url_coupC = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=374561563'
 
-            
         if self.haen_salesCoup.isChecked() == True:
             
             coupang_id_haen = self.login_info("COUP_HAEN_ID")
@@ -1164,7 +1167,7 @@ class Rawdata_extractor(QWidget):
             sales_coup(coupC_url, coupang_id_know, coupang_pw_know, sheet_url_coupC, sheet_name_knowC, options, brand)
 
 # 네이버 매출
-        def ssDown(brand):
+        def ssDown(url, brand):
 
             edge_driver = None
             try:
@@ -1194,7 +1197,7 @@ class Rawdata_extractor(QWidget):
 
 
                 # 사용자의 프로필 경로 설정
-                profile_path = 'C:\\Users\\A\\AppData\\Local\\Microsoft\\Edge\\User Data1'
+                profile_path = self.edge_path_folder.text()
                 edge_options.add_argument(f"user-data-dir={profile_path}")
                 edge_options.add_argument("--profile-directory=Default")
 
@@ -1204,7 +1207,7 @@ class Rawdata_extractor(QWidget):
                 edge_driver = webdriver.Edge(service=edge_service, options=edge_options)
 
 
-                edge_driver.get("https://bizadvisor.naver.com/shopping/product")
+                edge_driver.get(url)
 
                 # 로그인
                 WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#wrap > div > div > div.login_box > ul > li:nth-child(1) > a"))).click()
@@ -1257,13 +1260,11 @@ class Rawdata_extractor(QWidget):
                     # 날짜 클릭(달력오픈)
                     WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.date_select > a.btn.select_data'))).click()
 
-
                     # 날짜 변수 지정
                     tday_Ym = startday.strftime("%Y. %m.")
                     tday_d = str(int(startday.strftime("%d")))
                     trick = (startday-day1).strftime("%Y. %m.")
                     print(startday)
-
 
                     # %Y. %m 표시(웹상)
                     DPmonthStart = edge_driver.find_element(By.CSS_SELECTOR, "#wrap > div:nth-child(1) > section > div > div.fixed_header.on > div.tit_area > div > ul > li:nth-child(2) > div > div > div.calendar_lypop > div > div.pick_area > div.pick_calendar_layout > div.DayPicker.DayPicker > div > div.DayPicker-Month.rdp-caption_start")
@@ -1372,9 +1373,14 @@ class Rawdata_extractor(QWidget):
                 # 첫 번째 시트 선택
                 sheet = spreadsheet.worksheet(sheet_name)
 
-                last_row = len(sheet.get_all_values())
+                last_row = len(sheet.col_values(1))
                 print(last_row)
                 next_row = last_row + 1  # 다음 행 번호
+
+                if str(today_tday_str) in sheet.col_values(1):
+                    startday += timedelta(days=1)
+                    number -= 1
+                    continue
 
                 i = get_nth_latest_file(download_folder, number)
 
@@ -1427,7 +1433,7 @@ class Rawdata_extractor(QWidget):
                 number -= 1
 
             # 완료 로그
-            self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand_log}\n완료")
+            self.logBox.append(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand_log}\n완료")
 
         # if self.chk_ss_haen.isChecked() == True:
 
@@ -1443,6 +1449,7 @@ class Rawdata_extractor(QWidget):
         #     sheet_haenD = "하엔D"
 
         sheet_url = "https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=374561563"
+        url = "https://bizadvisor.naver.com/shopping/product"
 
         if self.love_salesNaver.isChecked() == True:
 
@@ -1451,13 +1458,13 @@ class Rawdata_extractor(QWidget):
             brand_log = "러블로"
 
             try:
-                ssDown(brand, brand_log)
-                ssWrite(sheet_name, sheet_url)
+                ssDown(url, brand)
+                ssWrite(sheet_name, sheet_url, brand_log)
 
             except Exception as e:
                 print(f"Error occurred: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand}\n실패")
 
         if self.know_salesNaver.isChecked() == True:
 
@@ -1466,13 +1473,13 @@ class Rawdata_extractor(QWidget):
             brand_log = "노마셀"
 
             try:
-                ssDown(brand, brand_log)
-                ssWrite(sheet_name, sheet_url)
+                ssDown(url, brand)
+                ssWrite(sheet_name, sheet_url, brand_log)
 
             except Exception as e:
                 print(f"Error occurred: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand}\n실패")
 
 # 쿠팡 광고
         def advt_coupang(url_coupang_daily, id, pw):
@@ -1923,7 +1930,7 @@ class Rawdata_extractor(QWidget):
                 sheet.update([[formatted_date]], f'A{next_row}')
 
             # 완료 로그
-            self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtCoup.text()}-{brand}\n완료")
+            self.logBox.append(f"{self.advt_group_box.title()}-{self.advtCoup.text()}-{brand}\n완료")
 
 
         coupC_url = "https://wing.coupang.com/seller/notification/metrics/dashboard"
@@ -1945,7 +1952,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Coupang: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
 
         # 쿠팡 러블로
         if self.love_advtCoup.isChecked() == True:
@@ -1963,7 +1970,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Coupang: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
 
         # 쿠팡 노마셀
         if self.know_advtCoup.isChecked() == True:
@@ -1980,7 +1987,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Coupang: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
 
 
 ### 네이버 검색광고 광고
@@ -1998,7 +2005,7 @@ class Rawdata_extractor(QWidget):
 
 
                 # 사용자의 프로필 경로 설정
-                profile_path = 'C:\\Users\\A\\AppData\\Local\\Microsoft\\Edge\\User Data1'
+                profile_path = self.edge_path_folder.text()
                 edge_options.add_argument(f"user-data-dir={profile_path}")
                 edge_options.add_argument("--profile-directory=Default")
 
@@ -2127,7 +2134,7 @@ class Rawdata_extractor(QWidget):
                 today_tday += timedelta(days=1)
 
             # 완료 로그
-            self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n완료")
+            self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n완료")
 
         if self.haen_advtNaver.isChecked() == True:
 
@@ -2143,7 +2150,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Naver: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
 
         if self.love_advtNaver.isChecked() == True:
 
@@ -2159,7 +2166,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Naver: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
 
         if self.know_advtNaver.isChecked() == True:
 
@@ -2175,7 +2182,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Naver: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
 
         if self.zq_advtNaver.isChecked() == True:
 
@@ -2191,7 +2198,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Naver: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
 
 
 # 네이버 gfa
@@ -2221,7 +2228,7 @@ class Rawdata_extractor(QWidget):
 
 
                 # 사용자의 프로필 경로 설정
-                profile_path = 'C:\\Users\\A\\AppData\\Local\\Microsoft\\Edge\\User Data1'
+                profile_path = self.edge_path_folder.text()
                 edge_options.add_argument(f"user-data-dir={profile_path}")
                 edge_options.add_argument("--profile-directory=Default")
 
@@ -2294,7 +2301,7 @@ class Rawdata_extractor(QWidget):
                     today_tday_temp += timedelta(days=1)
 
                 # 완료 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtGFA.text()}-{brand}\n완료")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtGFA.text()}-{brand}\n완료")
 
             except Exception as e:
                 print(f"Error occurred: {e}")
@@ -2306,7 +2313,7 @@ class Rawdata_extractor(QWidget):
                         print(f"Error closing driver: {close_error}")
 
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtGFA.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtGFA.text()}-{brand}\n실패")
 
         if self.haen_advtGFA.isChecked() == True:
             url = "https://gfa.naver.com/adAccount/accounts/69648/report/performance?startDate=2024-08-27&endDate=2024-09-02&adUnit=AD_ACCOUNT&dateUnit=DAY&placeUnit=TOTAL&dimension=TOTAL&currentPage=1&pageSize=10&filterList=%5B%5D&showColList=%5B%22result%22,%22sales_per_result%22,%22sales%22,%22imp_count%22,%22cpm%22,%22click_count%22,%22cpc%22,%22ctr%22%5D&period=last7daysWithoutToday&accessAdAccountNo=69648"
@@ -2608,7 +2615,7 @@ class Rawdata_extractor(QWidget):
                 driver.close()
 
                 # 완료 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtPC.text()}-{brand}\n완료")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtPC.text()}-{brand}\n완료")
 
             except Exception as e:
                 print(f"Error occurred: {e}")
@@ -2621,7 +2628,7 @@ class Rawdata_extractor(QWidget):
                         print(f"Error closing driver: {close_error}")
 
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtPC.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtPC.text()}-{brand}\n실패")
 
         url_cafe24 = "https://eclogin.cafe24.com/Shop/" 
         
@@ -2939,7 +2946,7 @@ class Rawdata_extractor(QWidget):
                 today_tday += timedelta(days=1)
             
                 # 완료 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtGgle.text()}-{brand}\n완료")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtGgle.text()}-{brand}\n완료")
 
         if self.haen_advtGgle.isChecked() == True:
             url_ads_haen = 'https://ads.google.com/aw/reporteditor/view?ocid=1181720304&workspaceId=0&reportId=927965366&euid=1114690018&__u=8943315282&uscid=1181720304&__c=5821258096&authuser=0'
@@ -2953,7 +2960,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Google: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtGgle.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtGgle.text()}-{brand}\n실패")
 
         if self.know_advtGgle.isChecked() == True:
             url_ads_know = 'https://ads.google.com/aw/reporteditor/view?ocid=1379143590&workspaceId=-1615213561&reportId=928192574&euid=1114690018&__u=8943315282&uscid=1379143590&__c=4267857910&authuser=0'
@@ -2967,7 +2974,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Google: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtGgle.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtGgle.text()}-{brand}\n실패")
 
 
 # 메타 광고
@@ -3057,7 +3064,7 @@ class Rawdata_extractor(QWidget):
                     today_tdayTemp += timedelta(days=1)
 
             # 완료 로그
-            self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n완료")
+            self.logBox.append(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n완료")
 
 # 메타
         def meta(url_meta, know_TF):
@@ -3173,7 +3180,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Meta: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
 
         #메타 러블로
         if self.love_advtMeta.isChecked() == True:
@@ -3189,7 +3196,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Meta: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
 
         #메타 노마셀
         if self.know_advtMeta.isChecked() == True:
@@ -3205,7 +3212,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Meta: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
 
         #메타 제니크
         if self.zq_advtMeta.isChecked() == True:
@@ -3221,7 +3228,7 @@ class Rawdata_extractor(QWidget):
             except Exception as e:
                 print(f"Error occurred in advt_Meta: {e}")
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtMeta.text()}-{brand}\n실패")
 
 
 # 방문자수
@@ -3413,7 +3420,7 @@ class Rawdata_extractor(QWidget):
                 driver.close()
 
                 # 완료 로그
-                self.logBox.setPlainText(f"{self.etc_group_box.title()}-{self.visitors.text()}-{brand}\n완료")
+                self.logBox.append(f"{self.etc_group_box.title()}-{self.visitors.text()}-{brand}\n완료")
 
             except Exception as e:
                 print(f"Error occurred: {e}")
@@ -3426,7 +3433,7 @@ class Rawdata_extractor(QWidget):
                         print(f"Error closing driver: {close_error}")
 
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.etc_group_box.title()}-{self.visitors.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.etc_group_box.title()}-{self.visitors.text()}-{brand}\n실패")
 
         if self.haen_visitors.isChecked() == True:
 
@@ -3671,7 +3678,7 @@ class Rawdata_extractor(QWidget):
                 driver.close()
 
                 # 완료 로그
-                self.logBox.setPlainText(f"{self.etc_group_box.title()}-{self.newMemb.text()}-{brand}\n완료")
+                self.logBox.append(f"{self.etc_group_box.title()}-{self.newMemb.text()}-{brand}\n완료")
 
             except Exception as e:
                 print(f"Error occurred: {e}")
@@ -3684,7 +3691,7 @@ class Rawdata_extractor(QWidget):
                         print(f"Error closing driver: {close_error}")
 
                 # 실패 로그
-                self.logBox.setPlainText(f"{self.etc_group_box.title()}-{self.newMemb.text()}-{brand}\n실패")
+                self.logBox.append(f"{self.etc_group_box.title()}-{self.newMemb.text()}-{brand}\n실패")
 
         if self.haen_newMemb.isChecked() == True:
 
