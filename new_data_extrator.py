@@ -491,35 +491,12 @@ class Rawdata_extractor(QWidget):
 
     def extract(self):
 
-        # def ignore_errors_and_continue(func):
-        #     @functools.wraps(func)
-        #     def wrapper(*args, **kwargs):
-        #         # 함수의 인자로 전달된 driver 또는 edge_driver 확인
-        #         driver = kwargs.get('driver', None) or kwargs.get('edge_driver', None)
-
-        #         try:
-        #             return func(*args, **kwargs)
-        #         except Exception as e:
-        #             print(f"Error in {func.__name__} ignored: {e}")
-        #             if driver:
-        #                 try:
-        #                     print("Closing the driver...")
-        #                     driver.quit()  # 전체 브라우저 종료
-        #                     time.sleep(2)  # 종료될 시간을 주기 위해 2초 대기
-        #                     print("Driver closed successfully.")
-        #                 except Exception as close_error:
-        #                     print(f"Error closing driver: {close_error}")
-        #             pass  # 오류가 발생한 함수는 무시하고 다음 코드로 진행
-        #     return wrapper
-
-    # 타겟날짜 변수 저장
+        # 타겟날짜 변수 저장
         target_days_input = int(self.combo.currentText())
 
         global download_folder
         download_folder = self.path_folder.text()
 
-        
-    
 
         def count_files(folder):
             """ 폴더 내 파일의 개수를 반환합니다. """
@@ -1167,7 +1144,7 @@ class Rawdata_extractor(QWidget):
             sales_coup(coupC_url, coupang_id_know, coupang_pw_know, sheet_url_coupC, sheet_name_knowC, options, brand)
 
 # 네이버 매출
-        def ssDown(url, brand):
+        def ssDown(url, brand, sheet_name, sheet_url, brand_log):
 
             edge_driver = None
             try:
@@ -1332,80 +1309,27 @@ class Rawdata_extractor(QWidget):
                     
                 edge_driver.close()
 
-                
+                time.sleep(2)
 
-            except Exception as e:
-                print(f"Error occurred: {e}")
-                if edge_driver:
-                    try:
-                        edge_driver.close()  # 오류 발생 시 드라이버를 닫음
-                        print("Driver closed successfully.")
-                    except Exception as close_error:
-                        print(f"Error closing driver: {close_error}")
+                defaultData = ["-", "-", "-", "-", "-", "-", "-", "0", "0", "0", "0.00%"]
+                # 날짜 구하기
+                today = date.today()
 
-        def ssWrite(sheet_name, sheet_url, brand_log):
-            defaultData = ["화장품/미용", "바디케어", "입욕제", "-", "러블로 러브슬라임 슬라임탕 젤 입욕제 젤탕", "9019908272",	"일반배송",	"0", "0", "0", "0.00%"]
-            # 날짜 구하기
-            today = date.today()
+                today_date = today.strftime("%d")
+                today_Ym = today.strftime("%Y. %m.")
 
-            today_date = today.strftime("%d")
-            today_Ym = today.strftime("%Y. %m.")
+                number = target_days_input
+                dayx = datetime.timedelta(days=number)
+                dayy = datetime.timedelta(days=1)
+                day1 = datetime.timedelta(days=1)
 
-            number = target_days_input
-            dayx = datetime.timedelta(days=number)
-            dayy = datetime.timedelta(days=1)
-            day1 = datetime.timedelta(days=1)
+                today_yday = today-day1
+                startday = today-dayx
+                endday = today-dayy
+                tday_Ym = startday.strftime("%Y. %m.")
+                tday_d = startday.strftime("%d")
 
-            today_yday = today-day1
-            startday = today-dayx
-            endday = today-dayy
-            tday_Ym = startday.strftime("%Y. %m.")
-            tday_d = startday.strftime("%d")
-
-            while number > 0:
-
-                # 서비스 계정 키 파일 경로
-                credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
-                # gspread 클라이언트 초기화
-                client = gspread.service_account(filename=credential_file)
-                # Google 시트 열기
-                spreadsheet = client.open_by_url(sheet_url)
-                # 첫 번째 시트 선택
-                sheet = spreadsheet.worksheet(sheet_name)
-
-                last_row = len(sheet.col_values(1))
-                print(last_row)
-                next_row = last_row + 1  # 다음 행 번호
-
-                if str(today_tday_str) in sheet.col_values(1):
-                    startday += timedelta(days=1)
-                    number -= 1
-                    continue
-
-                i = get_nth_latest_file(download_folder, number)
-
-                wb = openpyxl.load_workbook(i)
-                sheet = wb.active  # 활성 시트 선택
-
-                if check_data_in_second_row(i):
-                    pass
-
-                else:
-                    sheet = spreadsheet.worksheet(sheet_name)
-
-                    # 날짜 입력
-                    sheet.update([[str(startday)]], f"A{next_row}")
-                    range_to_write = f'B{next_row}:L{next_row}'
-                    sheet.update([defaultData], range_to_write)
-                    number -= 1
-                    startday += timedelta(days=1)  # 날짜 하루 증가
-                    continue
-
-
-                # 원본 시트의 행을 반복하며 첫 번째 행을 제외하고 데이터가 있는 행만 복사
-                for row in sheet.iter_rows(min_row=2):  # 첫 번째 행을 제외하고 시작
-                    # 각 셀에 데이터가 있는지 확인
-                    data_exists = any(cell.value not in (None, '', ' ') for cell in row)  # 빈 문자열과 공백도 무시
+                while number > 0:
 
                     # 서비스 계정 키 파일 경로
                     credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
@@ -1416,40 +1340,97 @@ class Rawdata_extractor(QWidget):
                     # 첫 번째 시트 선택
                     sheet = spreadsheet.worksheet(sheet_name)
 
-                    # 날짜 입력
-                    sheet.update([[str(startday)]], f"A{next_row}")
-                    
-                    values = []
-                    for col_index, cell in enumerate(row, start=2):
-                        values.append(cell.value)
+                    last_row = len(sheet.col_values(1))
+                    print(last_row)
+                    next_row = last_row + 1  # 다음 행 번호
 
-                    range_to_write = f'B{next_row}:L{next_row}'
-                    sheet.update([values], range_to_write)
+                    if str(startday) in sheet.col_values(1):
+                        number -= 1
+                        startday += timedelta(days=1)
+                        continue
 
-                    
-                    next_row += 1
+                    i = get_nth_latest_file(download_folder, number)
 
-                startday += timedelta(days=1)  # 날짜 하루 증가
-                number -= 1
+                    wb = openpyxl.load_workbook(i)
+                    sheet = wb.active  # 활성 시트 선택
 
-            # 완료 로그
-            self.logBox.append(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand_log}\n완료")
+                    if check_data_in_second_row(i):
+                        pass
 
-        # if self.chk_ss_haen.isChecked() == True:
+                    else:
+                        sheet = spreadsheet.worksheet(sheet_name)
 
-        #     label = self.chk_cafe_haen
-        #     url_cafe24 = "https://eclogin.cafe24.com/Shop/"
-        #     url_cafe24_req_haen = "https://woo8425.cafe24.com/disp/admin/shop1/report/DailyList"
-            
-        #     cafe24_id_haen = self.login_info("CAFE_HAEN_ID")
-        #     cafe24_pw_haen = self.login_info("CAFE_HAEN_PW")
+                        # 날짜 입력
+                        sheet.update([[str(startday)]], f"A{next_row}")
+                        range_to_write = f'B{next_row}:L{next_row}'
+                        sheet.update([defaultData], range_to_write)
+                        number -= 1
+                        startday += timedelta(days=1)  # 날짜 하루 증가
+                        continue
 
-        #     sheet_haenR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=1894651086'
-        #     sheet_haenR = '하엔R'
-        #     sheet_haenD = "하엔D"
+
+                    # 원본 시트의 행을 반복하며 첫 번째 행을 제외하고 데이터가 있는 행만 복사
+                    for row in sheet.iter_rows(min_row=2):  # 첫 번째 행을 제외하고 시작
+                        # 각 셀에 데이터가 있는지 확인
+                        data_exists = any(cell.value not in (None, '', ' ') for cell in row)  # 빈 문자열과 공백도 무시
+
+                        # 서비스 계정 키 파일 경로
+                        credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+                        # gspread 클라이언트 초기화
+                        client = gspread.service_account(filename=credential_file)
+                        # Google 시트 열기
+                        spreadsheet = client.open_by_url(sheet_url)
+                        # 첫 번째 시트 선택
+                        sheet = spreadsheet.worksheet(sheet_name)
+
+                        # 날짜 입력
+                        sheet.update([[str(startday)]], f"A{next_row}")
+                        
+                        values = []
+                        for col_index, cell in enumerate(row, start=2):
+                            values.append(cell.value)
+
+                        range_to_write = f'B{next_row}:L{next_row}'
+                        sheet.update([values], range_to_write)
+
+                        
+                        next_row += 1
+
+                    startday += timedelta(days=1)  # 날짜 하루 증가
+                    number -= 1
+
+                # 완료 로그
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand_log}\n완료")
+
+                
+
+            except Exception as e:
+                print(f"Error occurred: {e}")
+                if edge_driver:
+                    try:
+                        edge_driver.close()  # 오류 발생 시 드라이버를 닫음
+                        print("Driver closed successfully.")
+                    except Exception as close_error:
+                        print(f"Error closing driver: {close_error}")
+                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand}\n실패")
+
+        # def ssWrite(sheet_name, sheet_url, brand_log):
 
         sheet_url = "https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=374561563"
         url = "https://bizadvisor.naver.com/shopping/product"
+
+        if self.haen_salesNaver.isChecked() == True:
+
+            label = self.chk_cafe_haen
+            url_cafe24 = "https://eclogin.cafe24.com/Shop/"
+            url_cafe24_req_haen = "https://woo8425.cafe24.com/disp/admin/shop1/report/DailyList"
+            
+            cafe24_id_haen = self.login_info("CAFE_HAEN_ID")
+            cafe24_pw_haen = self.login_info("CAFE_HAEN_PW")
+
+            sheet_haenR_url = 'https://docs.google.com/spreadsheets/d/145lVmBVqp87AwsRK9KCclE-Dgkh0B7jbwsfaHKmwOz0/edit#gid=1894651086'
+            sheet_haenR = '하엔R'
+            sheet_haenD = "하엔D"
 
         if self.love_salesNaver.isChecked() == True:
 
@@ -1457,14 +1438,7 @@ class Rawdata_extractor(QWidget):
             sheet_name = "러블로N"
             brand_log = "러블로"
 
-            try:
-                ssDown(url, brand)
-                ssWrite(sheet_name, sheet_url, brand_log)
-
-            except Exception as e:
-                print(f"Error occurred: {e}")
-                # 실패 로그
-                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand}\n실패")
+            ssDown(url, brand, sheet_name, sheet_url, brand_log)
 
         if self.know_salesNaver.isChecked() == True:
 
@@ -1472,17 +1446,11 @@ class Rawdata_extractor(QWidget):
             sheet_name = "노마셀N"
             brand_log = "노마셀"
 
-            try:
-                ssDown(url, brand)
-                ssWrite(sheet_name, sheet_url, brand_log)
+            ssDown(url, brand, sheet_name, sheet_url, brand_log)
 
-            except Exception as e:
-                print(f"Error occurred: {e}")
-                # 실패 로그
-                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesNaver.text()}-{brand}\n실패")
 
 # 쿠팡 광고
-        def advt_coupang(url_coupang_daily, id, pw):
+        def advt_coupang(url_coupang_daily, id, pw, sheet_url, sheet_name, brand):
             driver = None
             try:
                 # 크롬 On
@@ -1850,6 +1818,84 @@ class Rawdata_extractor(QWidget):
                     except: pass
 
                 driver.close()
+
+                time.sleep(2)
+
+                xlsx_file = get_latest_file(download_folder)
+
+                df_uploaded_new = pd.read_excel(xlsx_file)
+                # '러브슬라임'이라는 단어가 포함된 모든 행을 '옵션명' 열을 기준으로 필터링합니다.
+                filtered_rows_with_loveslime = df_uploaded_new[df_uploaded_new['입찰유형'].astype(str).str.contains("cpc")]
+
+
+                # 필터링된 행들의 데이터를 리스트로 변환합니다.
+                rows_list_with_loveslime = filtered_rows_with_loveslime.values.tolist()
+
+                excel_dates = []
+                for i in rows_list_with_loveslime:
+                    num = rows_list_with_loveslime.index(i)
+                    excel_dates.append((rows_list_with_loveslime[num])[0])
+                print(excel_dates)
+
+                formatted_excel_dates = [datetime.datetime.strptime(str(date), "%Y%m%d").strftime("%Y-%m-%d") for date in excel_dates]
+
+                print(formatted_excel_dates)
+
+                updated_data_list = []
+                for row in rows_list_with_loveslime:
+                    new_row = row.copy()  # 원본 데이터의 복사본 생성
+                    if len(row) > 1:  # 두 번째 값이 존재하는지 확인
+                        new_row[1] = str(row[1])  # 두 번째 값을 정수형으로 변환 후 문자열로 변환
+                    updated_data_list.append(new_row)
+
+                print(updated_data_list)
+
+
+                # 서비스 계정 키 파일 경로
+                credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+
+                # gspread 클라이언트 초기화
+                client = gspread.service_account(filename=credential_file)
+
+                # Google 시트 열기
+                spreadsheet = client.open_by_url(sheet_url)
+
+                # 첫 번째 시트 선택
+                sheet = spreadsheet.worksheet(sheet_name)
+
+                
+                last_row = len(sheet.get_all_values())
+                print(last_row)
+                next_row = last_row + 1  # 다음 행 번호
+
+                formatted_date = today_yday.strftime("%Y-%m-%d")
+                # Google 시트에 데이터 쓰기
+
+                if len(updated_data_list) > 1:
+                    i = 0
+                    cnt = 0
+
+                    while cnt < len(updated_data_list):
+                        print((updated_data_list[cnt])[1:])
+                        if formatted_excel_dates[cnt] in sheet.col_values(1):
+                            cnt += 1
+                            continue
+                        range_to_write = f'B{next_row+i}:AI{next_row+i}'
+                        sheet.update([(updated_data_list[cnt])[1:-1]], range_to_write)
+                        sheet.update([[formatted_excel_dates[cnt]]], f'A{next_row+i}')
+                        i += 1
+                        cnt += 1
+
+                else:
+                    if formatted_excel_dates[0] in sheet.col_values(1):
+                        pass
+                    else:
+                        range_to_write = f'B{next_row}:AI{next_row}'
+                        sheet.update([(updated_data_list[0])[1:-1]], range_to_write)
+                        sheet.update([[formatted_date]], f'A{next_row}')
+
+                # 완료 로그
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtCoup.text()}-{brand}\n완료")
                 
 
             except Exception as e:
@@ -1860,78 +1906,10 @@ class Rawdata_extractor(QWidget):
                         print("Driver closed successfully.")
                     except Exception as close_error:
                         print(f"Error closing driver: {close_error}")
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtCoup.text()}-{brand}\n실패")
 
 #########쿠팡로데이터##########
-        def advt_coupang_rawdata(sheet_url, sheet_name, brand):
-
-            xlsx_file = get_latest_file(download_folder)
-
-            df_uploaded_new = pd.read_excel(xlsx_file)
-            # '러브슬라임'이라는 단어가 포함된 모든 행을 '옵션명' 열을 기준으로 필터링합니다.
-            filtered_rows_with_loveslime = df_uploaded_new[df_uploaded_new['입찰유형'].astype(str).str.contains("cpc")]
-
-
-            # 필터링된 행들의 데이터를 리스트로 변환합니다.
-            rows_list_with_loveslime = filtered_rows_with_loveslime.values.tolist()
-
-            excel_dates = []
-            for i in rows_list_with_loveslime:
-                num = rows_list_with_loveslime.index(i)
-                excel_dates.append((rows_list_with_loveslime[num])[0])
-            print(excel_dates)
-
-            formatted_excel_dates = [datetime.datetime.strptime(str(date), "%Y%m%d").strftime("%Y-%m-%d") for date in excel_dates]
-
-            print(formatted_excel_dates)
-
-            updated_data_list = []
-            for row in rows_list_with_loveslime:
-                new_row = row.copy()  # 원본 데이터의 복사본 생성
-                if len(row) > 1:  # 두 번째 값이 존재하는지 확인
-                    new_row[1] = str(row[1])  # 두 번째 값을 정수형으로 변환 후 문자열로 변환
-                updated_data_list.append(new_row)
-
-            print(updated_data_list)
-
-
-            # 서비스 계정 키 파일 경로
-            credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
-
-            # gspread 클라이언트 초기화
-            client = gspread.service_account(filename=credential_file)
-
-            # Google 시트 열기
-            spreadsheet = client.open_by_url(sheet_url)
-
-            # 첫 번째 시트 선택
-            sheet = spreadsheet.worksheet(sheet_name)
-
-            
-            last_row = len(sheet.get_all_values())
-            print(last_row)
-            next_row = last_row + 1  # 다음 행 번호
-
-            formatted_date = today_yday.strftime("%Y-%m-%d")
-            # Google 시트에 데이터 쓰기
-
-            if len(updated_data_list) > 1:
-                i = 0
-
-                while i < len(updated_data_list):
-                    print((updated_data_list[i])[1:])
-                    range_to_write = f'B{next_row+i}:AI{next_row+i}'
-                    sheet.update([(updated_data_list[i])[1:-1]], range_to_write)
-                    sheet.update([[formatted_excel_dates[i]]], f'A{next_row+i}')
-                    i += 1
-
-            else:
-                range_to_write = f'B{next_row}:AI{next_row}'
-                sheet.update([(updated_data_list[0])[1:-1]], range_to_write)
-                sheet.update([[formatted_date]], f'A{next_row}')
-
-            # 완료 로그
-            self.logBox.append(f"{self.advt_group_box.title()}-{self.advtCoup.text()}-{brand}\n완료")
-
+        # def advt_coupang_rawdata(sheet_url, sheet_name, brand):
 
         coupC_url = "https://wing.coupang.com/seller/notification/metrics/dashboard"
         coup_report_url = 'https://advertising.coupang.com/marketing-reporting/billboard/reports/pa'
@@ -1945,14 +1923,7 @@ class Rawdata_extractor(QWidget):
             sheet_name_haenR = '하엔 쿠팡 R'
             brand = "하엔"
 
-            try:
-                advt_coupang(coup_report_url, coupang_id_haen, coupang_pw_haen)
-                advt_coupang_rawdata(sheet_url_haen_all, sheet_name_haenR, brand)
-
-            except Exception as e:
-                print(f"Error occurred in advt_Coupang: {e}")
-                # 실패 로그
-                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
+            advt_coupang(coup_report_url, coupang_id_haen, coupang_pw_haen, sheet_url_haen_all, sheet_name_haenR, brand)
 
         # 쿠팡 러블로
         if self.love_advtCoup.isChecked() == True:
@@ -1963,14 +1934,7 @@ class Rawdata_extractor(QWidget):
             sheet_name_loveR = '러블로 쿠팡 R'
             brand = "러블로"
 
-            try:
-                advt_coupang(coup_report_url, coupang_id_lovelo, coupang_pw_lovelo)
-                advt_coupang_rawdata(sheet_url_love_all, sheet_name_loveR,brand )
-
-            except Exception as e:
-                print(f"Error occurred in advt_Coupang: {e}")
-                # 실패 로그
-                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
+            advt_coupang(coup_report_url, coupang_id_lovelo, coupang_pw_lovelo, sheet_url_love_all, sheet_name_loveR,brand)
 
         # 쿠팡 노마셀
         if self.know_advtCoup.isChecked() == True:
@@ -1980,19 +1944,12 @@ class Rawdata_extractor(QWidget):
             sheet_name_knowR = '노마셀 쿠팡 R'
             brand = "노마셀"
 
-            try:
-                advt_coupang(coup_report_url, coupang_id_knowmycell, coupang_pw_knowmycell)
-                advt_coupang_rawdata(sheet_url_know_all, sheet_name_knowR, brand)
-
-            except Exception as e:
-                print(f"Error occurred in advt_Coupang: {e}")
-                # 실패 로그
-                self.logBox.append(f"{self.sales_group_box.title()}-{self.salesCafe24.text()}-{brand}\n실패")
+            advt_coupang(coup_report_url, coupang_id_knowmycell, coupang_pw_knowmycell, sheet_url_know_all, sheet_name_knowR, brand)
 
 
 ### 네이버 검색광고 광고
          
-        def naverad(url):
+        def naverad(url1, url2, name, brand):
 
             edge_driver = None
             try:
@@ -2014,7 +1971,7 @@ class Rawdata_extractor(QWidget):
                 edge_service = Service(EdgeChromiumDriverManager().install())
                 edge_driver = webdriver.Edge(service=edge_service, options=edge_options)
 
-                edge_driver.get(url)
+                edge_driver.get(url1)
 
                 # 네이버검색광고 로그인 확인 창 제거 로직 수정(visibility_of_all_elements_located -> element_to_be_clickable)
                 try:
@@ -2056,8 +2013,79 @@ class Rawdata_extractor(QWidget):
                     cnt += 1
                     
                 
-                time.sleep(1)
+                time.sleep(2)
+
                 edge_driver.close()
+
+                target_days = target_days_input
+                dayx = datetime.timedelta(days=target_days)
+                day1 = datetime.timedelta(days=1)
+
+                # 오늘 날짜 구하기
+                today_yday = today-day1
+                today_tday = today-dayx
+                # CSV 파일 읽기 (첫 번째 행은 건너뛰고 두 번째 행을 열 이름으로 사용)
+                df = pd.read_csv(get_latest_file(download_folder), skiprows=1)
+
+                # 날짜 열 이름 추출 (A열, 즉 첫 번째 열)
+                date_column = df.columns[0]
+
+                # 'date' 열을 datetime 형식으로 변환
+                df[date_column] = pd.to_datetime(df[date_column], format='%Y.%m.%d.')
+
+                df[date_column] = df[date_column].dt.strftime('%Y-%m-%d')
+                # 필터링된 데이터프레임 출력
+                dataList = df.values.tolist()
+                print(df.values.tolist())
+
+                csv_file = get_latest_file(download_folder)
+
+                # 서비스 계정 키 파일 경로
+                credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+
+                # gspread 클라이언트 초기화
+                client = gspread.service_account(filename=credential_file)
+
+                # Google 시트 열기
+                spreadsheet = client.open_by_url(url2)
+
+                # 첫 번째 시트 선택
+                sheet = spreadsheet.worksheet(name)
+
+                while today_tday != today:
+                    print(today_tday, "검색 시작")
+                    if str(today_tday) in sheet.col_values(1):
+                        today_tday += timedelta(days=1)
+                        continue
+
+                    for i in dataList:
+                        if str(today_tday) in i:
+                            result = []
+                            print(today_tday, "찾음!")
+
+                            for item in i:
+                                if isinstance(item, str) and '%' in item:
+                                    result.append(float(item.strip('%')) / 100)
+                                elif isinstance(item, str) and ',' in item and '.' in item.replace(',', ''):
+                                    result.append(float(item.replace(',', '')))
+                                elif isinstance(item, str) and ',' in item:
+                                    result.append(int(item.replace(',', '')))
+                                elif isinstance(item, str) and item.replace('.', '', 1).isdigit() and item.count('.') == 1:
+                                    result.append(float(item))
+                                elif isinstance(item, str) and item.isdigit():
+                                    result.append(int(item))
+                                else:
+                                    result.append(item)
+
+
+                            last_row = len(sheet.col_values(1))
+                            next_row = int(last_row) + 1
+                            range_to_write = f'A{next_row}:S{next_row}'
+                            sheet.update([result], range_to_write)
+                    today_tday += timedelta(days=1)
+
+                # 완료 로그
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n완료")
 
             except Exception as e:
                 print(f"Error occurred: {e}")
@@ -2068,73 +2096,9 @@ class Rawdata_extractor(QWidget):
                     except Exception as close_error:
                         print(f"Error closing driver: {close_error}")
 
-        def naveradInput(url, name, brand):
+                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
 
-            target_days = target_days_input
-            dayx = datetime.timedelta(days=target_days)
-            day1 = datetime.timedelta(days=1)
-
-            # 오늘 날짜 구하기
-            today_yday = today-day1
-            today_tday = today-dayx
-            # CSV 파일 읽기 (첫 번째 행은 건너뛰고 두 번째 행을 열 이름으로 사용)
-            df = pd.read_csv(get_latest_file(download_folder), skiprows=1)
-
-            # 날짜 열 이름 추출 (A열, 즉 첫 번째 열)
-            date_column = df.columns[0]
-
-            # 'date' 열을 datetime 형식으로 변환
-            df[date_column] = pd.to_datetime(df[date_column], format='%Y.%m.%d.')
-
-            df[date_column] = df[date_column].dt.strftime('%Y-%m-%d')
-            # 필터링된 데이터프레임 출력
-            dataList = df.values.tolist()
-            print(df.values.tolist())
-
-            csv_file = get_latest_file(download_folder)
-
-            # 서비스 계정 키 파일 경로
-            credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
-
-            # gspread 클라이언트 초기화
-            client = gspread.service_account(filename=credential_file)
-
-            # Google 시트 열기
-            spreadsheet = client.open_by_url(url)
-
-            # 첫 번째 시트 선택
-            sheet = spreadsheet.worksheet(name)
-
-            while today_tday != today:
-                print(today_tday, "검색 시작")
-                for i in dataList:
-                    if str(today_tday) in i:
-                        result = []
-                        print(today_tday, "찾음!")
-
-                        for item in i:
-                            if isinstance(item, str) and '%' in item:
-                                result.append(float(item.strip('%')) / 100)
-                            elif isinstance(item, str) and ',' in item and '.' in item.replace(',', ''):
-                                result.append(float(item.replace(',', '')))
-                            elif isinstance(item, str) and ',' in item:
-                                result.append(int(item.replace(',', '')))
-                            elif isinstance(item, str) and item.replace('.', '', 1).isdigit() and item.count('.') == 1:
-                                result.append(float(item))
-                            elif isinstance(item, str) and item.isdigit():
-                                result.append(int(item))
-                            else:
-                                result.append(item)
-
-
-                        last_row = len(sheet.col_values(1))
-                        next_row = int(last_row) + 1
-                        range_to_write = f'A{next_row}:S{next_row}'
-                        sheet.update([result], range_to_write)
-                today_tday += timedelta(days=1)
-
-            # 완료 로그
-            self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n완료")
+        # def naveradInput(url, name, brand):
 
         if self.haen_advtNaver.isChecked() == True:
 
@@ -2143,14 +2107,7 @@ class Rawdata_extractor(QWidget):
             target_url = "https://manage.searchad.naver.com/customers/2621471/reports/rtt-a001-000000000650376"
             brand = "하엔"
             
-            try:
-                naverad(target_url)
-                naveradInput(sheet_url, sheet_name, brand)
-
-            except Exception as e:
-                print(f"Error occurred in advt_Naver: {e}")
-                # 실패 로그
-                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
+            naverad(target_url, sheet_url, sheet_name, brand)
 
         if self.love_advtNaver.isChecked() == True:
 
@@ -2159,14 +2116,7 @@ class Rawdata_extractor(QWidget):
             target_url = "https://manage.searchad.naver.com/customers/2914810/reports/rtt-a001-000000000651901"
             brand = "러블로"
             
-            try:
-                naverad(target_url)
-                naveradInput(sheet_url, sheet_name, brand)
-
-            except Exception as e:
-                print(f"Error occurred in advt_Naver: {e}")
-                # 실패 로그
-                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
+            naverad(target_url, sheet_url, sheet_name, brand)
 
         if self.know_advtNaver.isChecked() == True:
 
@@ -2175,14 +2125,7 @@ class Rawdata_extractor(QWidget):
             target_url = "https://manage.searchad.naver.com/customers/2957190/reports/rtt-a001-000000000651985"
             brand = "노마셀"
             
-            try:
-                naverad(target_url)
-                naveradInput(sheet_url, sheet_name, brand)
-
-            except Exception as e:
-                print(f"Error occurred in advt_Naver: {e}")
-                # 실패 로그
-                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
+            naverad(target_url, sheet_url, sheet_name, brand)
 
         if self.zq_advtNaver.isChecked() == True:
 
@@ -2191,14 +2134,7 @@ class Rawdata_extractor(QWidget):
             target_url = "https://manage.searchad.naver.com/customers/3163563/reports/rtt-a001-000000000725619"
             brand = "제니크"
             
-            try:
-                naverad(target_url)
-                naveradInput(sheet_url, sheet_name, brand)
-
-            except Exception as e:
-                print(f"Error occurred in advt_Naver: {e}")
-                # 실패 로그
-                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtNaver.text()}-{brand}\n실패")
+            naverad(target_url, sheet_url, sheet_name, brand)
 
 
 # 네이버 gfa
@@ -2256,15 +2192,21 @@ class Rawdata_extractor(QWidget):
 
                     cnt += 1
 
+                time.sleep(2)
+                print("다운로드 완료")
                 edge_driver.close()
-                
+
                 # csv 파일 변수 지정
                 csv_file = get_latest_file(download_folder)
 
                 today_tday_temp = today_tday
                 
-
                 while today_tday_temp != today:
+
+                    if str(today_tday_temp) in sheet.col_values(1):
+                        today_tday_temp += timedelta(days=1)
+                        continue
+
                     result = []
                     today_tday_gfa = str(today_tday_temp).replace("-", ".")+ "."
 
