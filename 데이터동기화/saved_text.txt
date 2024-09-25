@@ -1,7 +1,12 @@
 C:/Users/A/Downloads
+<<<<<<< HEAD
 <<<<<<< HEAD:saved_text.txt
 C:/Users/A/AppData/Local/Google/Chrome/User Data2
 =======
 C:/Users/A/Desktop/1305
 d
 >>>>>>> 12ba7f12178ab903a22760c468c6c46eb5b11c59:데이터동기화/saved_text.txt
+=======
+C:/Users/A/Desktop/1305
+d
+>>>>>>> a06a616d6493097e9f636a5c503fa31e740a1561
