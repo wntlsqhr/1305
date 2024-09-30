@@ -36,6 +36,8 @@ import sys
 import os
 import re
 import shutil
+import zipfile
+import chardet
 
 
 class Rawdata_extractor(QWidget):
@@ -1182,7 +1184,7 @@ class Rawdata_extractor(QWidget):
             coupang_pw_love = self.login_info("COUP_LOVE_PW")
             sheet_name_loveC = '러블로C'
             options = "러브슬라임"
-            brand = "하엔"
+            brand = "러블로"
 
 
             sales_coup(coupC_url, coupang_id_love, coupang_pw_love, sheet_url_coupC, sheet_name_loveC, options, brand)
@@ -1193,7 +1195,7 @@ class Rawdata_extractor(QWidget):
             coupang_pw_know = self.login_info("COUP_KNOW_PW")
             sheet_name_knowC = '노마셀C'
             options = "노마셀"
-            brand = "하엔"
+            brand = "노마셀"
 
 
             sales_coup(coupC_url, coupang_id_know, coupang_pw_know, sheet_url_coupC, sheet_name_knowC, options, brand)
@@ -1598,106 +1600,107 @@ class Rawdata_extractor(QWidget):
                 except: pass
 
                 try:
-                    WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#startDateId"))) #클릭 시작일
+                    WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "기간 설정")]'))).click()
+                    WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CLASS_NAME,"ant-picker-input-active"))) #클릭 시작일
                 except:
                     print("보고서페이지 로딩실패... retry")
                     driver.find_element(By.CSS_SELECTOR, "#cap-sidebar > nav > ul > li.ant-menu-item.ant-menu-item-selected > span.ant-menu-title-content > span").click()
 
                     WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.root > ul > li:nth-child(2) > div > span"))).click()
 
-                    WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "쿠팡 상품광고 보고서")]'))).click()
+                    WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "매출 성장 광고 보고서")]'))).click()
 
 
-                    WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#startDateId"))) #클릭 시작일
-                driver.find_element(By.CSS_SELECTOR, "#startDateId").click()
+                    WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "기간 설정")]'))).click()
+                    WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CLASS_NAME,"ant-picker-input-active"))) #클릭 시작일
 
-                before_Ym = today_tday.strftime("%Y년 %m월")
-                before_d = str(int(today_tday.strftime("%d")))
-                yesterday_Ym = today_yday.strftime("%Y년 %m월")
-                yesterday_d = str(int(today_yday.strftime("%d")))
+                # before_Ym = today_tday.strftime("%Y년 %m월")
+                # before_d = str(int(today_tday.strftime("%d")))
+                # yesterday_Ym = today_yday.strftime("%Y년 %m월")
+                # yesterday_d = str(int(today_yday.strftime("%d")))
 
-                firstCal = driver.find_elements(By.XPATH, "//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[2]")
-                secondCal = driver.find_elements(By.XPATH, "//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]")
+                # firstCal = driver.find_elements(By.XPATH, "//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[2]")
+                # secondCal = driver.find_elements(By.XPATH, "//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]")
 
-                # 시작날짜
-                try:
-                    for i in firstCal:
-                        # 텍스트를 줄 단위로 나누기
-                        lines = (i.text).strip().split('\n')
-                        if lines[0] == today_Tday년월:
-                            print("OK")
-                            i.find_element(By.XPATH, f"""//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/
-                            div/div[2]/div/table//*[text()='{today_Tday일}']""").click()
+                # # 시작날짜
+                # try:
+                #     for i in firstCal:
+                #         # 텍스트를 줄 단위로 나누기
+                #         lines = (i.text).strip().split('\n')
+                #         if lines[0] == today_Tday년월:
+                #             print("OK")
+                #             i.find_element(By.XPATH, f"""//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/
+                #             div/div[2]/div/table//*[text()='{today_Tday일}']""").click()
 
-                    for i in secondCal:
-                        # 텍스트를 줄 단위로 나누기
-                        lines = (i.text).strip().split('\n')
-                        if lines[0] == today_Tday년월:
-                            print("OK")
-                            i.find_element(By.XPATH, f"//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]/div/table//*[text()='{today_Tday일}']").click()
+                #     for i in secondCal:
+                #         # 텍스트를 줄 단위로 나누기
+                #         lines = (i.text).strip().split('\n')
+                #         if lines[0] == today_Tday년월:
+                #             print("OK")
+                #             i.find_element(By.XPATH, f"//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]/div/table//*[text()='{today_Tday일}']").click()
 
-                except: pass
+                # except: pass
                     
 
                         
-                time.sleep(0.1)
+                # time.sleep(0.1)
 
-                # 종료날짜
-                try:
-                    for i in firstCal:
-                        # 텍스트를 줄 단위로 나누기
-                        lines = (i.text).strip().split('\n')
-                        if lines[0] == today_Yday년월:
-                            print("OK")
-                            i.find_element(By.XPATH, f"//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[2]/div/table//*[text()='{today_Yday일}']").click()
+                # # 종료날짜
+                # try:
+                #     for i in firstCal:
+                #         # 텍스트를 줄 단위로 나누기
+                #         lines = (i.text).strip().split('\n')
+                #         if lines[0] == today_Yday년월:
+                #             print("OK")
+                #             i.find_element(By.XPATH, f"//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[2]/div/table//*[text()='{today_Yday일}']").click()
 
-                    for i in secondCal:
-                        # 텍스트를 줄 단위로 나누기
-                        lines = (i.text).strip().split('\n')
-                        if lines[0] == today_Yday년월:
-                            print("OK")
-                            i.find_element(By.XPATH, f"//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]/div/table//*[text()='{today_Yday일}']").click()
+                #     for i in secondCal:
+                #         # 텍스트를 줄 단위로 나누기
+                #         lines = (i.text).strip().split('\n')
+                #         if lines[0] == today_Yday년월:
+                #             print("OK")
+                #             i.find_element(By.XPATH, f"//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]/div/table//*[text()='{today_Yday일}']").click()
 
-                except: pass
-                element = driver.find_element(By.CSS_SELECTOR, '#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-19odvm9-0.kgfJLF > div.select-date-group')#기간 구분
+                # except: pass
+                element = driver.find_element(By.XPATH, "//*[contains(text(), '일별')]")#기간 구분
                 element.click() 
-                ActionChains(driver).move_to_element_with_offset(element,5,75).click().perform() #클릭 일별
+                # ActionChains(driver).move_to_element_with_offset(element,5,75).click().perform() #클릭 일별
                 time.sleep(0.3)
 
-                driver.find_element(By.CSS_SELECTOR,'#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-1jpf51e-0.hSjByk > div > div.campaign-picker-container > div > button > span.text').click() #캠페인 선택
+                driver.find_element(By.CLASS_NAME,'campaign-picker-dropdown-btn').click() #캠페인 선택
                 time.sleep(0.5)
-                checkbox = driver.find_element(By.CSS_SELECTOR, "body > div.sc-1jpf51e-1.jljGiJ.popper > div > div.select-all-campaigns > label > span.ant-checkbox > input[type='checkbox']")
-                if not checkbox.is_selected():
-                    checkbox.click()  # 체크박스가 체크되어 있지 않다면 클릭하여 체크합니다.
-                driver.find_element(By.CSS_SELECTOR, "body > div.sc-1jpf51e-1.jljGiJ.popper > div > div.button-container > button.ant-btn.ant-btn-primary > span").click()
+                # 전체선택 체크박스
+                WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "전체선택")]'))).click()
+                # 확인버튼 클릭
+                driver.find_element(By.CSS_SELECTOR, "body > div:nth-child(10) > div > div > div > div.sc-rag8z-3.imXbCm > button.ant-btn.ant-btn-primary.confirm-button").click()
                 time.sleep(0.3)
 
                 ### 보고서 생성 실패하면 페이지 다시 로딩 후 생성
                 try:
                     try:
-                        driver.find_element(By.CSS_SELECTOR, "#generateReport > span").click() #보고서 생성
+                        WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-qgdqvh-0.jCzhRy > button'))).click()
 
                     except:
-                        driver.find_element(By.CSS_SELECTOR,'#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-1jpf51e-0.hSjByk > div > div.campaign-picker-container > div > button > span.text').click() #캠페인 선택
+                        driver.find_element(By.CLASS_NAME,'campaign-picker-dropdown-btn').click() #캠페인 선택
                         time.sleep(0.5)
-                        checkbox = driver.find_element(By.CSS_SELECTOR, "body > div.sc-1jpf51e-1.jljGiJ.popper > div > div.select-all-campaigns > label > span.ant-checkbox > input[type='checkbox']")
+                        # 전체선택 체크박스
+                        WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "전체선택")]'))).click()
+                        # 확인버튼 클릭
+                        driver.find_element(By.CSS_SELECTOR, "body > div:nth-child(11) > div > div > div > div.sc-rag8z-3.imXbCm > button.ant-btn.ant-btn-primary.confirm-button").click()
+                        time.sleep(0.3)
+                        # 보고서생성
+                        WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-qgdqvh-0.jCzhRy > button'))).click()
 
-                        if not checkbox.is_selected():
-                            checkbox.click()  # 체크박스가 체크되어 있지 않다면 클릭하여 체크합니다.
-
-                        driver.find_element(By.CSS_SELECTOR, "body > div.sc-1jpf51e-1.jljGiJ.popper > div > div.button-container > button.ant-btn.ant-btn-primary > span").click()
-                        driver.find_element(By.CSS_SELECTOR, "#generateReport > span").click() #보고서 생성
-
-                    time.sleep(1.5)
+                    time.sleep(5)
 
                     if driver.find_element(By.CSS_SELECTOR, "#rc-tabs-0-panel-requestedReport > div > div.react-grid-Container > div > div > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(5) > div > div > span > div").text == "생성 실패":
-                        driver.find_element(By.CSS_SELECTOR, "#generateReport > span").click() 
+                        driver.find_element(By.CSS_SELECTOR, "#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-qgdqvh-0.jCzhRy > button").click() 
                         time.sleep(5)
 
                     
 
                     # 보고서 다운로드
-                    element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#rc-tabs-0-panel-requestedReport > div > div.react-grid-Container > div > div > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(6) > div > div > span > div > div:nth-child(2) > button > span"))) 
+                    element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#rc-tabs-0-panel-requestedReport > div.sc-1rsi61o-0.cvLTzA > div > div > div > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(6) > div > div > span > div > button:nth-child(2) > span"))) 
 
                     # 다운로드 확인
                     cnt = 1
@@ -1720,154 +1723,59 @@ class Rawdata_extractor(QWidget):
                 except:
                     driver.get(url_coupang_daily)
 
-                    try:
-                        WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#startDateId"))) #클릭 시작일
-                    except:
-                        driver.refresh()
-                        WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#startDateId"))) #클릭 시작일
-                    driver.find_element(By.CSS_SELECTOR, "#startDateId").click()
-
-                    before_Ym = today_tday.strftime("%Y년 %m월")
-                    before_d = str(int(today_tday.strftime("%d")))
-                    yesterday_Ym = today_yday.strftime("%Y년 %m월")
-                    yesterday_d = str(int(today_yday.strftime("%d")))
-
-                    firstCal = driver.find_elements(By.XPATH, "//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[2]")
-                    secondCal = driver.find_elements(By.XPATH, "//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]")
-
-                    # 시작날짜
-                    try:
-                        for i in firstCal:
-                            # 텍스트를 줄 단위로 나누기
-                            lines = (i.text).strip().split('\n')
-                            if lines[0] == today_Tday년월:
-                                print("OK")
-                                i.find_element(By.XPATH, f"""//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/
-                                div/div[2]/div/table//*[text()='{today_Tday일}']""").click()
-
-                        for i in secondCal:
-                            # 텍스트를 줄 단위로 나누기
-                            lines = (i.text).strip().split('\n')
-                            if lines[0] == today_Tday년월:
-                                print("OK")
-                                i.find_element(By.XPATH, f"//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]/div/table//*[text()='{today_Tday일}']").click()
-
-                    except: pass
-                        
-
-                            
-                    time.sleep(0.1)
-
-                    # 종료날짜
-                    try:
-                        for i in firstCal:
-                            # 텍스트를 줄 단위로 나누기
-                            lines = (i.text).strip().split('\n')
-                            if lines[0] == today_Yday년월:
-                                print("OK")
-                                i.find_element(By.XPATH, f"//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[2]/div/table//*[text()='{today_Yday일}']").click()
-
-                        for i in secondCal:
-                            # 텍스트를 줄 단위로 나누기
-                            lines = (i.text).strip().split('\n')
-                            if lines[0] == today_Yday년월:
-                                print("OK")
-                                i.find_element(By.XPATH, f"//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]/div/table//*[text()='{today_Yday일}']").click()
-
-                    except: pass
-                    element = driver.find_element(By.CSS_SELECTOR, '#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-19odvm9-0.kgfJLF > div.select-date-group')#기간 구분
+                    element = driver.find_element(By.XPATH, "//*[contains(@class, 'ant-radio-inner') and contains(., '일별')]")#기간 구분
                     element.click() 
                     ActionChains(driver).move_to_element_with_offset(element,5,75).click().perform() #클릭 일별
                     time.sleep(0.3)
 
-                    driver.find_element(By.CSS_SELECTOR,'#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-1jpf51e-0.hSjByk > div > div.campaign-picker-container > div > button > span.text').click() #캠페인 선택
+                    driver.find_element(By.CLASS_NAME,'campaign-picker-dropdown-btn').click() #캠페인 선택
                     time.sleep(0.5)
-                    checkbox = driver.find_element(By.CSS_SELECTOR, "body > div.sc-1jpf51e-1.jljGiJ.popper > div > div.select-all-campaigns > label > span.ant-checkbox > input[type='checkbox']")
-                    if not checkbox.is_selected():
-                        checkbox.click()  # 체크박스가 체크되어 있지 않다면 클릭하여 체크합니다.
-                    driver.find_element(By.CSS_SELECTOR, "body > div.sc-1jpf51e-1.jljGiJ.popper > div > div.button-container > button.ant-btn.ant-btn-primary > span").click()
+                    # 전체선택 체크박스
+                    WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "전체선택")]'))).click()
+                    # 확인버튼 클릭
+                    driver.find_element(By.CSS_SELECTOR, "body > div:nth-child(11) > div > div > div > div.sc-rag8z-3.imXbCm > button.ant-btn.ant-btn-primary.confirm-button").click()
                     time.sleep(0.3)
 
-                ### 보고서 생성 실패 시 한 번 더 시도
+                    ### 보고서 생성 실패하면 페이지 다시 로딩 후 생성
                     try:
-                        # 보고서 생성
-                        driver.find_element(By.CSS_SELECTOR, "#generateReport > span").click() 
-                        time.sleep(5)
-
-                        if driver.find_element(By.CSS_SELECTOR, "#rc-tabs-0-panel-requestedReport > div > div.react-grid-Container > div > div > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(5) > div > div > span > div").text == "생성 실패":
-                            driver.find_element(By.CSS_SELECTOR, "#generateReport > span").click() 
-                            time.sleep(5)
-
-                        # 보고서 다운로드
-                        element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#rc-tabs-0-panel-requestedReport > div > div.react-grid-Container > div > div > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(6) > div > div > span > div > div:nth-child(2) > button > span"))) 
-
-                        # 다운로드 확인
-                        cnt = 1
-                        while cnt < 10:
-                            current_file_count1 = count_files(download_folder)
-                            element.click()
-                            time.sleep(3)
-                            current_file_count2 = count_files(download_folder)
-                            if current_file_count1 != current_file_count2:
-                                break
-
-                            cnt += 1
+                        WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-qgdqvh-0.jCzhRy > button'))).click()
 
                     except:
-
-                        driver.get(url_coupang_daily)
-
-                        WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR,"#endDateId"))) #클릭 종료일 
-                        driver.find_element(By.CSS_SELECTOR, "#endDateId").click()
+                        driver.find_element(By.CLASS_NAME,'campaign-picker-dropdown-btn').click() #캠페인 선택
+                        time.sleep(0.5)
+                        # 전체선택 체크박스
+                        WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "전체선택")]'))).click()
+                        # 확인버튼 클릭
+                        driver.find_element(By.CSS_SELECTOR, "body > div:nth-child(11) > div > div > div > div.sc-rag8z-3.imXbCm > button.ant-btn.ant-btn-primary.confirm-button").click()
                         time.sleep(0.3)
-                        driver.find_element(By.XPATH, '//*[@id="ad-reporting-app"]/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[2]/div/span[2]/button').click() #어제 클릭
-                        time.sleep(0.3)
-    # 쿠팡 보고서 -> 어제 클릭 -> 새로고침 과정에서 새로고침 선택 안되는 문제(CSS요소 변동) 수정 // 텍스트로 새로고침 인식하게 함
-                        driver.find_element(By.XPATH, '//*[contains(text(), "목록 새로 고침")]').click()
-                        time.sleep(0.3)
+                        # 보고서생성
+                        WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, '#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-qgdqvh-0.jCzhRy > button'))).click()
 
-                        element = driver.find_element(By.CSS_SELECTOR, '#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-19odvm9-0.kgfJLF > div.select-date-group')#기간 구분
-                        element.click() 
-                        ActionChains(driver).move_to_element_with_offset(element,5,75).click().perform() #클릭 일별
-                        time.sleep(0.3)
+                    time.sleep(5)
 
-                        driver.find_element(By.CSS_SELECTOR,'#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-1jpf51e-0.hSjByk > div > div.campaign-picker-container > div > button > span.text').click() #캠페인 선택
-                        time.sleep(0.3)
-                        checkbox = driver.find_element(By.CSS_SELECTOR, "body > div.sc-1jpf51e-1.jljGiJ.popper > div > div.select-all-campaigns > label > span.ant-checkbox > input[type='checkbox']")
-
-                        # 체크박스가 체크되어 있지 않다면 클릭하여 체크합니다.
-                        if not checkbox.is_selected():
-                            checkbox.click()  
-                        driver.find_element(By.CSS_SELECTOR, "body > div.sc-1jpf51e-1.jljGiJ.popper > div > div.button-container > button.ant-btn.ant-btn-primary > span").click()
-                        time.sleep(0.3)
-
-
-                        # 보고서 생성
-                        driver.find_element(By.CSS_SELECTOR, "#generateReport > span").click() 
+                    if driver.find_element(By.CSS_SELECTOR, "#rc-tabs-0-panel-requestedReport > div > div.react-grid-Container > div > div > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(5) > div > div > span > div").text == "생성 실패":
+                        driver.find_element(By.CSS_SELECTOR, "#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div.sc-qgdqvh-0.jCzhRy > button").click() 
                         time.sleep(5)
 
-                        if driver.find_element(By.CSS_SELECTOR, "#rc-tabs-0-panel-requestedReport > div > div.react-grid-Container > div > div > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(5) > div > div > span > div").text == "생성 실패":
-                            driver.find_element(By.CSS_SELECTOR, "#generateReport > span").click() 
-                            time.sleep(5)
+                    
 
-                        # 보고서 다운로드
-                        element = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#rc-tabs-0-panel-requestedReport > div > div.react-grid-Container > div > div > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(6) > div > div > span > div > div:nth-child(2) > button > span"))) 
+                    # 보고서 다운로드
+                    element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#rc-tabs-0-panel-requestedReport > div.sc-1rsi61o-0.cvLTzA > div > div > div > div:nth-child(2) > div > div > div:nth-child(2) > div:nth-child(1) > div:nth-child(6) > div > div > span > div > button:nth-child(2) > span"))) 
 
-                        # 다운로드 확인
-                        cnt = 1
-                        while cnt < 10:
-                            current_file_count1 = count_files(download_folder)
-                            element.click()
+                    # 다운로드 확인
+                    cnt = 1
+                    while cnt < 10:
+                        current_file_count1 = count_files(download_folder)
+                        element.click()
+                        time.sleep(3)
+                        current_file_count2 = count_files(download_folder)
+                        if current_file_count1 != current_file_count2:
+                            break
 
-                            time.sleep(3)
-                            current_file_count2 = count_files(download_folder)
-                            if current_file_count1 != current_file_count2:
-                                break
-
-                            cnt += 1
+                        cnt += 1
 
                     # check_download()
-                    time.sleep(4)
+                    time.sleep(1)
                     try:
                         WebDriverWait(driver, 3).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "body > div.MuiDialog-root.sc-852clq-0.efPzRF > div.MuiDialog-container.MuiDialog-scrollPaper > div > div:nth-child(3) > button"))).click()
                     except: pass
@@ -1880,7 +1788,7 @@ class Rawdata_extractor(QWidget):
 
                 df_uploaded_new = pd.read_excel(xlsx_file)
                 # '러브슬라임'이라는 단어가 포함된 모든 행을 '옵션명' 열을 기준으로 필터링합니다.
-                filtered_rows_with_loveslime = df_uploaded_new[df_uploaded_new['입찰유형'].astype(str).str.contains("cpc")]
+                filtered_rows_with_loveslime = df_uploaded_new[df_uploaded_new['과금방식'].astype(str).str.contains("cpc")]
 
 
                 # 필터링된 행들의 데이터를 리스트로 변환합니다.
@@ -1905,7 +1813,8 @@ class Rawdata_extractor(QWidget):
 
                 print(updated_data_list)
 
-
+                for sub_list in updated_data_list:
+                    del sub_list[2]
                 # 서비스 계정 키 파일 경로
                 credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
 
@@ -2197,138 +2106,194 @@ class Rawdata_extractor(QWidget):
 # 네이버 gfa
         def advt_gfa(url, sheet_url, sheet_name, brand):
 
-            edge_driver = None
-            try:
+            # edge_driver = None
+            # # try:
 
-                edge_options = webdriver.EdgeOptions()
-                edge_options.use_chromium = True
-                edge_options.add_argument("disable-gpu")
-                edge_options.add_argument("no-sandbox")
-
-
-                # 사용자의 프로필 경로 설정
-                profile_path = self.edge_path_folder.text()
-                edge_options.add_argument(f"user-data-dir={profile_path}")
-                edge_options.add_argument("--profile-directory=Default")
+            # edge_options = webdriver.EdgeOptions()
+            # edge_options.use_chromium = True
+            # edge_options.add_argument("disable-gpu")
+            # edge_options.add_argument("no-sandbox")
 
 
-                # Edge 드라이버 서비스 시작
-                edge_service = Service(EdgeChromiumDriverManager().install())
-                edge_driver = webdriver.Edge(service=edge_service, options=edge_options)
+            # # 사용자의 프로필 경로 설정
+            # profile_path = self.edge_path_folder.text()
+            # edge_options.add_argument(f"user-data-dir={profile_path}")
+            # edge_options.add_argument("--profile-directory=Default")
 
 
-                edge_driver.get(url)
-
-                element = WebDriverWait(edge_driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#content > div > div.panel_body.report > div:nth-child(2) > div > div > div.ad_title > div > div.inner_right > a > button")))
-
-                # 다운로드 확인
-                cnt = 1
-                current_file_count1 = count_files(download_folder)
-                while cnt < 10:
-                    element.click()
-                    time.sleep(3)
-                    current_file_count2 = count_files(download_folder)
-                    if current_file_count1 != current_file_count2:
-                        break
-                    elif cnt == 300:
-                        break
-
-                    cnt += 1
-
-                time.sleep(2)
-                print("다운로드 완료")
-                edge_driver.close()
-
-                # 서비스 계정 키 파일 경로
-                credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
-
-                # gspread 클라이언트 초기화
-                client = gspread.service_account(filename=credential_file)
-
-                # Google 시트 열기
-                spreadsheet = client.open_by_url(sheet_url)
-
-                # 첫 번째 시트 선택
-                sheet = spreadsheet.worksheet(sheet_name)
-
-                # csv 파일 변수 지정
-                csv_file = get_latest_file(download_folder)
-
-                today_tday_temp = today_tday
-                
-                while today_tday_temp != today:
-                    print(today_tday_temp)
-
-                    result = []
-                    today_tday_gfa = str(today_tday_temp).replace("-", ".")+ "."
-
-                    # 타겟 날짜에 맞는 데이터 고르기
-                    with open(csv_file, newline='', encoding='utf-8') as csvfile:
-                        reader = csv.reader(csvfile)
-
-                        # 각 행 리스트화
-                        rows = list(reader)
-                        reader_date = []
-
-                        # 날짜만 따로 저장
-                        for row in rows:
-                            reader_date.append(row[2])
-
-                        # 시트에 입력할 행 저장
-                        last_row = len(sheet.col_values(1))
-                        next_row = int(last_row) + 1
+            # # Edge 드라이버 서비스 시작
+            # edge_service = Service(EdgeChromiumDriverManager().install())
+            # edge_driver = webdriver.Edge(service=edge_service, options=edge_options)
 
 
-                        # 중복 입력 방지
-                        if str(today_tday_temp) in sheet.col_values(1):
-                            today_tday_temp += timedelta(days=1)
-                            continue
+            # edge_driver.get(url)
 
-                        # 목표날짜가 날짜 리스트에 있으면
-                        elif today_tday_gfa in reader_date:
-                            row_num = reader_date.index(today_tday_gfa)
+            # # 데이터 옵션선택
+            # WebDriverWait(edge_driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#content > div > div.panel_body.report > div:nth-child(2) > div > div > div.ad_title > div > div.inner_right > div > div > div > button"))).click()
+            # # 데이터 옵션선택(rawdata)
+            # WebDriverWait(edge_driver, 5).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "rawdata")]'))).click()
+            # # 다운로드 요청
+            # WebDriverWait(edge_driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#content > div > div.panel_body.report > div:nth-child(2) > div > div > div.ad_title > div > div.inner_right > a > button"))).click()
+            # # 확인 클릭
+            # WebDriverWait(edge_driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#content > div > div.modal_root.__pa_fade_in > div > div.ly_content > div.ly_footer.type_border > button.button.button_panel.type_blue"))).click()
+            # print("확인클릭")
+            # time.sleep(2.5)
+            # # 닫기 클릭
+            # WebDriverWait(edge_driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#content > div > div.modal_root.__pa_fade_in > div > div.ly_content > div.ly_footer.type_border > button"))).click()
+            # print("닫기클릭")
+            # time.sleep(2.5)
+            # # 다운로드 요청 목록
+            # WebDriverWait(edge_driver, 5).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "다운로드 요청 목록")]'))).click()
+            # print("다운로드요청목록")
 
-                            for item in rows[row_num]:
-                                if isinstance(item, str) and '%' in item:
-                                    result.append(float(item.strip('%')) / 100)
-                                elif isinstance(item, str) and ',' in item:
-                                    result.append(int(item.replace(',', '')))
-                                elif isinstance(item, str) and item.replace('.', '', 1).isdigit() and item.count('.') == 1:
-                                    result.append(float(item))
-                                elif isinstance(item, str) and item.isdigit():
-                                    result.append(int(item))
-                                else:
-                                    result.append(item)
+            # # 다운로드
+            # element = WebDriverWait(edge_driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#content > div > div.modal_root.__pa_fade_in > div > div.ly_content > div.ly_body.type_padding > div.table_area.table_sticky.active.false > div > div > div > div.table_box > div > div > table > tbody > tr:nth-child(1) > td:nth-child(8) > div > button")))
 
-                            range_to_write = f'B{next_row}:BY{next_row}'
-                            sheet.update([result], range_to_write)
-                            sheet.update([[str(today_tday_temp)]], f'A{next_row}')
-                            continue
+            # # 다운로드 확인
+            # cnt = 1
+            # current_file_count1 = count_files(download_folder)
+            # while cnt < 10:
+            #     element.click()
+            #     time.sleep(3)
+            #     current_file_count2 = count_files(download_folder)
+            #     if current_file_count1 != current_file_count2:
+            #         break
+            #     elif cnt == 300:
+            #         break
 
-                        # 없으면 더미 데이터 입력    
-                        else:
-                            dumyData = ["-", "-", "-", 0, "-", 0, "-", "KRW", 0, "-", "-", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-                            range_to_write = f'B{next_row}:BY{next_row}'
-                            sheet.update([dumyData], range_to_write)
-                            sheet.update([[str(today_tday_temp)]], f'A{next_row}')
-                            continue
+            #     cnt += 1
 
-                    today_tday_temp += timedelta(days=1)
+            # time.sleep(2)
+            # print("다운로드 완료")
+            # edge_driver.close()
 
-                # 완료 로그
-                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtGFA.text()}-{brand}<br><span style='color:blue;'>완료</span>")
 
-            except Exception as e:
-                print(f"Error occurred: {e}")
-                if edge_driver:
-                    try:
-                        edge_driver.close()  # 오류 발생 시 드라이버를 닫음
-                        print("Driver closed successfully.")
-                    except Exception as close_error:
-                        print(f"Error closing driver: {close_error}")
 
-                # 실패 로그
-                self.logBox.append(f"{self.advt_group_box.title()}-{self.advtGFA.text()}-{brand}<br><span style='color:blue;'>실패</span>")
+
+            get_latest_file_path = get_latest_file(download_folder)
+            print(get_latest_file_path)
+
+            # ZIP 파일 압축 해제
+            with zipfile.ZipFile(get_latest_file_path, 'r') as zip_ref:
+                zip_ref.extractall(download_folder)
+
+            # 압축 해제된 파일을 기다리기 위한 루프 (최대 10초까지 대기)
+            start_time = time.time()
+            while time.time() - start_time < 10:  # 최대 10초 동안 기다림
+                latest_file_path = get_latest_file(download_folder, extension='.csv')
+                if latest_file_path and latest_file_path != get_latest_file_path:
+                    break
+                time.sleep(0.5)  # 0.5초씩 기다리며 폴더 상태를 확인
+
+            time.sleep(5)
+            get_latest_file_path = get_latest_file(download_folder)
+            print(get_latest_file_path)
+
+            # 인코딩 감지
+            with open(get_latest_file_path, 'rb') as f:
+                result = chardet.detect(f.read())
+                detected_encoding = result['encoding']
+
+            # 감지된 인코딩으로 파일을 읽기
+            with open(get_latest_file_path, 'r', encoding=detected_encoding) as f:
+                reader = csv.reader(f)
+                rows = list(reader)
+                for row in rows:
+                    print(row)
+
+
+
+            # 서비스 계정 키 파일 경로
+            credential_file = 'triple-nectar-412808-da4dac0cc16e.json'
+
+            # gspread 클라이언트 초기화
+            client = gspread.service_account(filename=credential_file)
+
+            # Google 시트 열기
+            spreadsheet = client.open_by_url(sheet_url)
+
+            # 첫 번째 시트 선택
+            sheet = spreadsheet.worksheet(sheet_name)
+
+            # csv 파일 변수 지정
+            csv_file = get_latest_file(download_folder)
+
+            today_tday_temp = today_tday
+            
+            while today_tday_temp != today:
+                print(today_tday_temp)
+
+                result = []
+                today_tday_gfa = str(today_tday_temp).replace("-", ".")+ "."
+
+                # 타겟 날짜에 맞는 데이터 고르기
+                with open(csv_file, newline='', encoding='UTF-8-SIG') as csvfile:
+                    reader = csv.reader(csvfile)
+
+                    # 각 행 리스트화
+                    rows = list(reader)
+                    reader_date = []
+
+                    # 날짜만 따로 저장
+                    for row in rows:
+                        print(row)
+                        reader_date.append(row[2])
+
+                    # 시트에 입력할 행 저장
+                    last_row = len(sheet.col_values(1))
+                    next_row = int(last_row) + 1
+
+
+                    # 중복 입력 방지
+                    if str(today_tday_temp) in sheet.col_values(1):
+                        today_tday_temp += timedelta(days=1)
+                        continue
+
+                    # 목표날짜가 날짜 리스트에 있으면
+                    elif today_tday_gfa in reader_date:
+                        row_num = reader_date.index(today_tday_gfa)
+
+                        for item in rows[row_num]:
+                            if isinstance(item, str) and '%' in item:
+                                result.append(float(item.strip('%')) / 100)
+                            elif isinstance(item, str) and ',' in item:
+                                result.append(int(item.replace(',', '')))
+                            elif isinstance(item, str) and item.replace('.', '', 1).isdigit() and item.count('.') == 1:
+                                result.append(float(item))
+                            elif isinstance(item, str) and item.isdigit():
+                                result.append(int(item))
+                            else:
+                                result.append(item)
+
+                        range_to_write = f'B{next_row}:BY{next_row}'
+                        sheet.update([result], range_to_write)
+                        sheet.update([[str(today_tday_temp)]], f'A{next_row}')
+                        continue
+
+                    # 없으면 더미 데이터 입력    
+                    else:
+                        dumyData = ["-", "-", "-", 0, "-", 0, "-", "KRW", 0, "-", "-", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                        range_to_write = f'B{next_row}:BY{next_row}'
+                        sheet.update([dumyData], range_to_write)
+                        sheet.update([[str(today_tday_temp)]], f'A{next_row}')
+                        continue
+
+                today_tday_temp += timedelta(days=1)
+
+            # 완료 로그
+            self.logBox.append(f"{self.advt_group_box.title()}-{self.advtGFA.text()}-{brand}<br><span style='color:blue;'>완료</span>")
+
+            # except Exception as e:
+            #     print(f"Error occurred: {e}")
+            #     if edge_driver:
+            #         try:
+            #             edge_driver.close()  # 오류 발생 시 드라이버를 닫음
+            #             print("Driver closed successfully.")
+            #         except Exception as close_error:
+            #             print(f"Error closing driver: {close_error}")
+
+            #     # 실패 로그
+            #     self.logBox.append(f"{self.advt_group_box.title()}-{self.advtGFA.text()}-{brand}<br><span style='color:red;'>실패</span>")
 
         if self.haen_advtGFA.isChecked() == True:
             url = "https://gfa.naver.com/adAccount/accounts/69648/report/performance?startDate=2024-08-27&endDate=2024-09-02&adUnit=AD_ACCOUNT&dateUnit=DAY&placeUnit=TOTAL&dimension=TOTAL&currentPage=1&pageSize=10&filterList=%5B%5D&showColList=%5B%22result%22,%22sales_per_result%22,%22sales%22,%22imp_count%22,%22cpm%22,%22click_count%22,%22cpc%22,%22ctr%22%5D&period=last7daysWithoutToday&accessAdAccountNo=69648"
