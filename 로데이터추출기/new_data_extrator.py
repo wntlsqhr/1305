@@ -1601,7 +1601,7 @@ class Rawdata_extractor(QWidget):
 
                 try:
                     WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "기간 설정")]'))).click()
-                    WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CLASS_NAME,"ant-picker-input-active"))) #클릭 시작일
+                    WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CLASS_NAME,"ant-picker-input-active"))).click() #클릭 시작일
                 except:
                     print("보고서페이지 로딩실패... retry")
                     driver.find_element(By.CSS_SELECTOR, "#cap-sidebar > nav > ul > li.ant-menu-item.ant-menu-item-selected > span.ant-menu-title-content > span").click()
@@ -1612,12 +1612,12 @@ class Rawdata_extractor(QWidget):
 
 
                     WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "기간 설정")]'))).click()
-                    WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CLASS_NAME,"ant-picker-input-active"))) #클릭 시작일
+                    WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CLASS_NAME,"ant-picker-input-active"))).click() #클릭 시작일
 
-                # before_Ym = today_tday.strftime("%Y년 %m월")
-                # before_d = str(int(today_tday.strftime("%d")))
-                # yesterday_Ym = today_yday.strftime("%Y년 %m월")
-                # yesterday_d = str(int(today_yday.strftime("%d")))
+                before_Ym = today_tday.strftime("%Y년 %m월")
+                before_d = str(int(today_tday.strftime("%d")))
+                yesterday_Ym = today_yday.strftime("%Y년 %m월")
+                yesterday_d = str(int(today_yday.strftime("%d")))
 
                 # firstCal = driver.find_elements(By.XPATH, "//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[2]")
                 # secondCal = driver.find_elements(By.XPATH, "//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]")
@@ -1662,6 +1662,32 @@ class Rawdata_extractor(QWidget):
                 #             i.find_element(By.XPATH, f"//*[@id='ad-reporting-app']/div[2]/div/div[2]/div[1]/div[2]/div[3]/div[2]/div[2]/div[1]/div/div/div[2]/div/div/div[1]/div[2]/div[2]/div/div[3]/div/table//*[text()='{today_Yday일}']").click()
 
                 # except: pass
+
+                # 시작 날짜 입력
+                input_field1 = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div:nth-child(4) > div > div > div > div > div:nth-child(4) > div > div:nth-child(1) > input")))
+                input_field1.send_keys(str(today_tday))
+                time.sleep(0.5)
+                input_field1.send_keys(Keys.ENTER)
+                
+                # 종료 날짜 입력
+                actions = ActionChains(driver)
+                actions.send_keys(f"{str(today_yday)}").perform()
+                time.sleep(0.3)
+                actions.send_keys(Keys.ENTER).perform()
+
+                element = driver.find_element(By.XPATH, "//*[contains(text(), '일별')]")#기간 구분
+                element.click() 
+                # ActionChains(driver).move_to_element_with_offset(element,5,75).click().perform() #클릭 일별
+                time.sleep(0.3)
+                
+                driver.find_element(By.CLASS_NAME,'campaign-picker-dropdown-btn').click() #캠페인 선택
+                time.sleep(0.5)
+                # 전체선택 체크박스
+                WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "전체선택")]'))).click()
+                # 확인버튼 클릭
+                driver.find_element(By.CSS_SELECTOR, "body > div:nth-child(11) > div > div > div > div.sc-rag8z-3.imXbCm > button.ant-btn.ant-btn-primary.confirm-button").click()
+                time.sleep(0.3)
+
                 element = driver.find_element(By.XPATH, "//*[contains(text(), '일별')]")#기간 구분
                 element.click() 
                 # ActionChains(driver).move_to_element_with_offset(element,5,75).click().perform() #클릭 일별
@@ -1672,7 +1698,7 @@ class Rawdata_extractor(QWidget):
                 # 전체선택 체크박스
                 WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.XPATH, '//*[contains(text(), "전체선택")]'))).click()
                 # 확인버튼 클릭
-                driver.find_element(By.CSS_SELECTOR, "body > div:nth-child(10) > div > div > div > div.sc-rag8z-3.imXbCm > button.ant-btn.ant-btn-primary.confirm-button").click()
+                driver.find_element(By.CSS_SELECTOR, "body > div:nth-child(11) > div > div > div > div.sc-rag8z-3.imXbCm > button.ant-btn.ant-btn-primary.confirm-button").click()
                 time.sleep(0.3)
 
                 ### 보고서 생성 실패하면 페이지 다시 로딩 후 생성
@@ -1723,9 +1749,21 @@ class Rawdata_extractor(QWidget):
                 except:
                     driver.get(url_coupang_daily)
 
-                    element = driver.find_element(By.XPATH, "//*[contains(@class, 'ant-radio-inner') and contains(., '일별')]")#기간 구분
+                    # 시작 날짜 입력
+                    input_field1 = WebDriverWait(driver, 15).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "#ad-reporting-app > div.self-service-ad-reporting-ui > div > div.sc-11l2gxs-0.fcpsUc > div.sc-ipia07-0.iCqAxH > div.panel-options > div:nth-child(4) > div > div > div > div > div:nth-child(4) > div > div:nth-child(1) > input")))
+                    input_field1.send_keys(str(today_tday))
+                    time.sleep(0.5)
+                    input_field1.send_keys(Keys.ENTER)
+                    
+                    # 종료 날짜 입력
+                    actions = ActionChains(driver)
+                    actions.send_keys(f"{str(today_yday)}").perform()
+                    time.sleep(0.3)
+                    actions.send_keys(Keys.ENTER).perform()
+
+                    element = driver.find_element(By.XPATH, "//*[contains(text(), '일별')]")#기간 구분
                     element.click() 
-                    ActionChains(driver).move_to_element_with_offset(element,5,75).click().perform() #클릭 일별
+                    # ActionChains(driver).move_to_element_with_offset(element,5,75).click().perform() #클릭 일별
                     time.sleep(0.3)
 
                     driver.find_element(By.CLASS_NAME,'campaign-picker-dropdown-btn').click() #캠페인 선택
